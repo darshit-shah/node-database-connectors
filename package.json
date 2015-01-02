@@ -1,0 +1,22 @@
+{
+  "name": "node-database-connectors",
+  "version": "0.0.0",
+  "description": "",
+  "main": "ConnectorIdentifier.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/darshit-shah/node-database-connectors.git"
+  },
+  "author": "Darshit Shah <darshit@yuktianalytics.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/darshit-shah/node-database-connectors/issues"
+  },
+  "dependencies": {
+  	"mysql": "*"
+  },
+  "homepage": "https://github.com/darshit-shah/node-database-connectors"
+}
