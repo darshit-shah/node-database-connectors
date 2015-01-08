@@ -1,6 +1,6 @@
 {
   "name": "node-database-connectors",
-  "version": "0.0.3",
+  "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
   "main": "ConnectorIdentifier.js",
   "scripts": {
@@ -11,12 +11,12 @@
     "url": "https://github.com/darshit-shah/node-database-connectors.git"
   },
   "author": "Darshit Shah <darshit@yuktianalytics.com>",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/darshit-shah/node-database-connectors/issues"
   },
   "dependencies": {
-  	"mysql": "*"
+    "mysql": "*"
   },
-  "homepage": "https://github.com/darshit-shah/node-database-connectors"
+  "homepage": "https://github.com/darshit-shah/node-database-connectors",
+  "version": "0.0.6"
 }
