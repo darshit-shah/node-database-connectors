@@ -41,6 +41,7 @@ exports.prepareQuery = function () {
 }
 function prepareQuery(json) {
     var table = json.table ? json.table : null;
+    var fromTblAlias = json.alias ? json.alias : null;
     var select = json.select ? json.select : null
         , filter = json.filter ? json.filter : null
         , groupby = json.groupby ? json.groupby : null
@@ -65,7 +66,7 @@ function prepareQuery(json) {
         table = strJOIN;
     }
     else {
-        table = encloseField(table);
+        table = encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
     }
 
     //aggregation
@@ -76,9 +77,11 @@ function prepareQuery(json) {
 
     //group by
     if (groupby != null) {
-        for (var g = 0; g < groupby.length; g++) {
-            arrGroupBy.push(encloseField(groupby[g]));
-        };
+        arrGroupBy = createSelect(groupby);
+        //        for (var g = 0; g < groupby.length; g++) {
+        //            groupby[g].table = groupby[g].table ? groupby[g].table : '';
+        //            arrGroupBy.push(encloseField(groupby[g].table) + '.' + encloseField(groupby[g].field));
+        //        };
     }
 
     //order by
@@ -121,33 +124,75 @@ function createSelect(arr) {
     if (arr != null) {
         for (var s = 0; s < arr.length; s++) {
             var obj = arr[s];
-            var field = encloseField(obj.field);
+            var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
+            var field = encloseField(obj.field, encloseFieldFlag);
             var table = encloseField((obj.table ? obj.table : ''));
+            var hasAlias = (obj.alias ? true : false);
             var alias = encloseField((obj.alias ? obj.alias : obj.field));
             var expression = obj.expression ? obj.expression : null;
             var aggregation = obj.aggregation ? obj.aggregation : null;
+            var dataType = obj.dataType ? obj.dataType : null;
+            var format = obj.format ? obj.format : null;
             var selectText = '';
             if (expression != null) {
-                var selectText = '(CASE WHEN ';
-                for (var e = 0; e < expression.length; e++) {
-                    var operator = expression[e].operator;
-                    var value = expression[e].value;
-                    var out = expression[e].out;
-                    var operatorSign = '';
-                    if (operator.toString().toLowerCase() == 'eq') operatorSign = '=';
-                    else if (operator.toString().toLowerCase() == 'match') operatorSign = 'LIKE';
-                    selectText += table + '.' + field + ' ' + operatorSign + ' "' + value + '" THEN ' + out;
+                var selectText = '(CASE ';
+                var cases = expression.cases;
+                var defaultCase = expression['default'];
+                var defaultValue = '';
+                for (var e = 0; e < cases.length; e++) {
+                    var operator = cases[e].operator;
+                    var value = cases[e].value;
+                    var out = cases[e].out;
+                    var outVal = '';
+                    if (out.hasOwnProperty('value')) {
+                        outVal = out.value;
+                    }
+                    else {
+                        outVal = encloseField(out.table) + '.' + encloseField(out.field);
+                    }
+                    var strOperatorSign = '';
+                    strOperatorSign = operatorSign(operator, value);
+                    if (strOperatorSign.indexOf('IN') > -1) {//IN condition has different format
+                        selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+                    }
+                    else {
+                        selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+                    }
                 }
-                selectText += ' ELSE ' + table + '.' + field + ' END)';
+                if (defaultCase.hasOwnProperty('value')) {
+                    defaultValue = defaultCase.value;
+                }
+                else {
+                    defaultValue = encloseField(defaultCase.table) + '.' + encloseField(defaultCase.field);
+                }
+                selectText += ' ELSE ' + defaultValue + ' END)';
             }
             else {
-                selectText = table + '.' + field;
+                if (dataType != null) {
+                    if (dataType.toString().toLowerCase() == 'datetime') {
+                        selectText = ' DATE_FORMAT(' + table + '.' + field + ',\'' + format + '\') ';
+                    }
+                    else {
+                        if (encloseFieldFlag == false || encloseFieldFlag == 'false')
+                            selectText = field;
+                        else
+                            selectText = table + '.' + field;
+                    }
+                }
+                else {
+                    if (encloseFieldFlag == false || encloseFieldFlag == 'false') {
+                        selectText = field;
+                    }
+                    else {
+                        selectText = table + '.' + field;
+                    }
+                }
             }
 
             if (aggregation != null) {
                 selectText = aggregation + '(' + selectText + ')';
             }
-            selectText += ' as ' + alias;
+            if (hasAlias) selectText += ' as ' + alias;
             tempArr.push(selectText);
             selectText = null;
         };
@@ -165,6 +210,10 @@ function createAggregationFilter(obj) {
         tempHaving = createFilter(obj);
     }
     return tempHaving;
+}
+
+exports.createFilter = function (arr) {
+    return createFilter(arr);
 }
 
 //Create filter conditions set
@@ -215,8 +264,11 @@ function createMultipleConditions(obj) {
     return tempArrFilters;
 }
 
-function encloseField(a) {
-    return fieldIdentifier_left + a + fieldIdentifier_right;
+function encloseField(a, flag) {
+    if (flag == undefined || (flag != undefined && flag == true))
+        return fieldIdentifier_left + a + fieldIdentifier_right;
+    else
+        return a;
 }
 
 function operatorSign(operator, value) {
@@ -282,7 +334,18 @@ function createSingleCondition(obj) {
         conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
     }
     else {
-        conditiontext += ' ' + sign + ' "' + value + '"';
+        var tempValue = '';
+        if (typeof value === 'object') {
+            sign = operatorSign(operator, '');
+            if (value.hasOwnProperty('field')) {
+                var rTable = value.table ? value.table : '';
+                tempValue = encloseField(rTable) + '.' + encloseField(value.field);
+            }
+        }
+        else {
+            var tempValue = '\'' + value + '\'';
+        }
+        conditiontext += ' ' + sign + ' ' + tempValue;
     }
     return conditiontext;
 }
@@ -292,14 +355,20 @@ function createJOIN(join) {
     var joinText = '';
     if (join != null) {
         var fromTbl = join.table;
+        var fromTblAlias = join.alias;
         var joinwith = join.joinwith;
-        joinText += encloseField(fromTbl);
+        var strJoinConditions = '';
+        joinText += encloseField(fromTbl) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
         for (var j = 0; j < joinwith.length; j++) {
             var table = joinwith[j].table
+            , tableAlias = joinwith[j].alias
             , type = joinwith[j].type ? joinwith[j].type : 'INNER'
             , joincondition = joinwith[j].joincondition;
 
-            joinText += ' ' + type.toString().toUpperCase() + ' JOIN ' + encloseField(table) + ' ON ' + joincondition.on + ' ' + operatorSign(joincondition.operator, '') + ' ' + joincondition.value
+            //            for (var jc = 0; jc < joincondition.length; jc++) {
+            //                strJoinConditions += joincondition[jc].on + ' ' + operatorSign(joincondition[jc].operator, joincondition[jc].value) + ' ' + joincondition[jc].value + ' ';
+            //            }
+            joinText += ' ' + type.toString().toUpperCase() + ' JOIN ' + encloseField(table) + (tableAlias ? (' as ' + tableAlias) : '') + ' ON ' + createFilter(joincondition).join('');
         }
     }
     return joinText;
