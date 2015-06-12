@@ -232,7 +232,7 @@ function createFilter(arr) {
 }
 
 function createMultipleConditions(obj) {
-    this.tempArrFilters = [];
+    var tempArrFilters = [];
     var conditionType = Object.keys(obj)[0]; //AND/OR/NONE
     if (conditionType.toString().toLowerCase() != 'none') {
         var listOfConditions = obj[conditionType]; //all conditions
@@ -240,7 +240,7 @@ function createMultipleConditions(obj) {
             var tempConditionType = Object.keys(listOfConditions[c])[0];
             //console.log('*************' + tempConditionType + '*******************');
             if (tempConditionType.toString().toLowerCase() == 'and' || tempConditionType.toString().toLowerCase() == 'or') {
-                createMultipleConditions(listOfConditions[c]);
+                tempArrFilters.push(createMultipleConditions(listOfConditions[c]));
             }
             else if (tempConditionType.toString().toLowerCase() == 'none') {
                 var conditiontext = createSingleCondition(listOfConditions[c].none);
