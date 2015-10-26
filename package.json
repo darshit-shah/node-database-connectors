@@ -18,5 +18,5 @@
     "mysql": "*"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "0.0.8"
+  "version": "0.0.9"
 }

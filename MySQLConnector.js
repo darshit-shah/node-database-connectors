@@ -2,7 +2,7 @@
 
 //connect
 var fieldIdentifier_left = '`'
-fieldIdentifier_right = '`';
+, fieldIdentifier_right = '`';
 exports.connect = function (json, cb) {
     connect(json, cb);
 }
@@ -50,12 +50,11 @@ function prepareQuery(json) {
         , join = json.join ? json.join : null
         , having = json.having ? json.having : null;
     var arrSelect = []
-    , arrFilter = []
-    , arrGroupBy = []
-    , arrSortBy = []
-    , arrHaving = []
-    , strJOIN = ''
-    , objAggregation = [];
+        , arrFilter = []
+        , arrGroupBy = []
+        , arrSortBy = []
+        , arrHaving = []
+        , strJOIN = '';
 
     //select
     arrSelect = createSelect(select);
@@ -87,9 +86,13 @@ function prepareQuery(json) {
     //order by
     if (sortby != null) {
         for (var s = 0; s < sortby.length; s++) {
-            var field = encloseField(sortby[s].field);
-            var order = sortby[s].order ? sortby[s].order : 'ASC';
-            arrSortBy.push(field + ' ' + order);
+            var sortField = encloseField(sortby[s].field);
+            var sortTable = sortby[s].table != undefined ? encloseField(sortby[s].table) : null;
+            var sortOrder = sortby[s].order ? sortby[s].order : 'ASC';
+            if (sortTable == null)
+                arrSortBy.push(sortField + ' ' + sortOrder);
+            else
+                arrSortBy.push(sortTable + '.' + sortField + ' ' + sortOrder);
         }
     }
 
@@ -135,7 +138,7 @@ function createSelect(arr) {
             var format = obj.format ? obj.format : null;
             var selectText = '';
             if (expression != null) {
-                var selectText = '(CASE ';
+                selectText = '(CASE ';
                 var cases = expression.cases;
                 var defaultCase = expression['default'];
                 var defaultValue = '';
@@ -277,22 +280,22 @@ function operatorSign(operator, value) {
         if (Object.prototype.toString.call(value) === '[object Array]') {
             sign = 'IN';
         }
+        else if (typeof value === 'undefined') {
+            sign = 'IS';
+        }
         else if (typeof value == 'string') {
-            if (value == null)
-                sign = 'IS';
-            else
-                sign = '=';
+            sign = '=';
         }
     }
     else if (operator.toString().toLowerCase() == 'noteq') {
         if (Object.prototype.toString.call(value) === '[object Array]') {
             sign = 'NOT IN';
         }
+        else if (typeof value === 'undefined') {
+            sign = 'IS NOT';
+        }
         else if (typeof value == 'string') {
-            if (value == null)
-                sign = 'IS NOT';
-            else
-                sign = '<>';
+            sign = '<>';
         }
     }
     else if (operator.toString().toLowerCase() == 'match') {
@@ -318,16 +321,29 @@ function operatorSign(operator, value) {
 
 function createSingleCondition(obj) {
     var field = obj.field
-    , table = obj.table ? obj.table : ''
-    , aggregation = obj.aggregation ? obj.aggregation : null
-    , operator = obj.operator
-    , value = obj.value;
+        , table = obj.table ? obj.table : ''
+        , aggregation = obj.aggregation ? obj.aggregation : null
+        , operator = obj.operator
+        , value = obj.value
+        , encloseFieldFlag = obj.encloseField;
 
     var conditiontext = '';
-    if (aggregation != null)
-        conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
-    else
-        conditiontext = '' + encloseField(table) + '.' + encloseField(field) + '';
+    if (aggregation != null) {
+        if (encloseFieldFlag == false) {
+            conditiontext = aggregation + '(' + field + ')';
+        }
+        else {
+            conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
+        }
+    }
+    else {
+        if (encloseFieldFlag == false) {
+            conditiontext = field;
+        }
+        else {
+            conditiontext = '' + encloseField(table) + '.' + encloseField(field) + '';
+        }
+    }
 
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) {//IN condition has different format
@@ -335,7 +351,9 @@ function createSingleCondition(obj) {
     }
     else {
         var tempValue = '';
-        if (typeof value === 'object') {
+        if (typeof value === 'undefined') {
+            tempValue = 'null';
+        } else if (typeof value === 'object') {
             sign = operatorSign(operator, '');
             if (value.hasOwnProperty('field')) {
                 var rTable = value.table ? value.table : '';
@@ -343,7 +361,7 @@ function createSingleCondition(obj) {
             }
         }
         else {
-            var tempValue = '\'' + value + '\'';
+            tempValue = '\'' + value + '\'';
         }
         conditiontext += ' ' + sign + ' ' + tempValue;
     }
@@ -357,13 +375,13 @@ function createJOIN(join) {
         var fromTbl = join.table;
         var fromTblAlias = join.alias;
         var joinwith = join.joinwith;
-        var strJoinConditions = '';
+        // var strJoinConditions = '';
         joinText += encloseField(fromTbl) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
         for (var j = 0; j < joinwith.length; j++) {
             var table = joinwith[j].table
-            , tableAlias = joinwith[j].alias
-            , type = joinwith[j].type ? joinwith[j].type : 'INNER'
-            , joincondition = joinwith[j].joincondition;
+                , tableAlias = joinwith[j].alias
+                , type = joinwith[j].type ? joinwith[j].type : 'INNER'
+                , joincondition = joinwith[j].joincondition;
 
             //            for (var jc = 0; jc < joincondition.length; jc++) {
             //                strJoinConditions += joincondition[jc].on + ' ' + operatorSign(joincondition[jc].operator, joincondition[jc].value) + ' ' + joincondition[jc].value + ' ';
@@ -379,7 +397,7 @@ function createJOIN(join) {
 exports.execQuery = function () {
     return execQuery(arguments);
 }
-function execQuery() {
+function execQuery(cb) {
     var query = arguments[0][0];
     var connection = null;
     var format = null;
