@@ -331,7 +331,7 @@ function createInsert(arr) {
             tempJson.valueArr.push(', (' + subValueArr.join() + ')');
           }
         } else {
-          var fValue = encloseField(objSub, encloseFieldFlag)
+          var fValue = encloseField(obj, encloseFieldFlag)
           tempJson.valueArr.push(fValue);
         }
       }
