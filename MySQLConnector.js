@@ -360,9 +360,9 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
-      var fValue = encloseField(obj.fValue ? obj.fValue : '');
+      var fValue = obj.fValue ? obj.fValue : '';
       var selectText = '';
-      selectText = table + '.' + field + '=' + fValue;
+      selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       tempArr.push(selectText);
     }
     return tempArr;
