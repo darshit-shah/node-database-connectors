@@ -322,8 +322,9 @@ function createInsert(arr) {
           subValueArr = [];
           for (var k = 0; k < obj.length; k++) {
             var objSub = obj[k]
-            var fValue = encloseField(objSub, encloseFieldFlag)
-            subValueArr.push(fValue);
+            var fValue = objSub
+            subValueArr.push('\'' + fValue + '\'');
+
           }
           if (tempJson.valueArr !== []) {
             tempJson.valueArr.push('(' + subValueArr.join() + ')');
@@ -331,8 +332,8 @@ function createInsert(arr) {
             tempJson.valueArr.push(', (' + subValueArr.join() + ')');
           }
         } else {
-          var fValue = encloseField(obj, encloseFieldFlag)
-          tempJson.valueArr.push(fValue);
+          var fValue = obj
+          tempJson.valueArr.push('\'' + fValue + '\'');
         }
       }
     } else {
@@ -341,9 +342,9 @@ function createInsert(arr) {
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
-        var fValue = encloseField(obj.fValue ? obj.fValue : '');
+        var fValue = obj.fValue ? obj.fValue : '';
         tempJson.fieldArr.push(field);
-        tempJson.valueArr.push(fValue);
+        tempJson.valueArr.push('\'' + fValue + '\'');
       }
     }
 
