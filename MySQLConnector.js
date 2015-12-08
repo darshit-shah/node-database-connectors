@@ -50,7 +50,18 @@ function createInsertQuery(json) {
   var arrInsert = [];
   arrInsert = createInsert(vInsert);
   console.log(arrInsert);
-  var query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+  var query = '';
+  if (!Array.isArray(vInsert)) {
+    if (!Array.isArray(vInsert.fValue[0])) {
+      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+    } else {
+      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES ' + arrInsert.valueArr.join() + '';
+    }
+
+  } else {
+    query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+  }
+
   return query + ';';
 }
 
@@ -224,7 +235,7 @@ function prepareQuery(json) {
 //Create select expression
 function createSelect(arr) {
   var tempArr = [];
-  if (arr != null) {
+  if (arr != null && arr.length > 0 ) {
     for (var s = 0; s < arr.length; s++) {
       var obj = arr[s];
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
