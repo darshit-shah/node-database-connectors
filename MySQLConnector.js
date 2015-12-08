@@ -50,7 +50,18 @@ function createInsertQuery(json) {
   var arrInsert = [];
   arrInsert = createInsert(vInsert);
   console.log(arrInsert);
-  var query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+  var query = '';
+  if (!Array.isArray(vInsert)) {
+    if (!Array.isArray(vInsert.fValue[0])) {
+      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+    } else {
+      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES ' + arrInsert.valueArr.join() + '';
+    }
+
+  } else {
+    query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+  }
+
   return query + ';';
 }
 
@@ -224,7 +235,7 @@ function prepareQuery(json) {
 //Create select expression
 function createSelect(arr) {
   var tempArr = [];
-  if (arr != null) {
+  if (arr != null && arr.length > 0 ) {
     for (var s = 0; s < arr.length; s++) {
       var obj = arr[s];
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
@@ -322,8 +333,9 @@ function createInsert(arr) {
           subValueArr = [];
           for (var k = 0; k < obj.length; k++) {
             var objSub = obj[k]
-            var fValue = encloseField(objSub, encloseFieldFlag)
-            subValueArr.push(fValue);
+            var fValue = objSub
+            subValueArr.push('\'' + fValue + '\'');
+
           }
           if (tempJson.valueArr !== []) {
             tempJson.valueArr.push('(' + subValueArr.join() + ')');
@@ -331,8 +343,8 @@ function createInsert(arr) {
             tempJson.valueArr.push(', (' + subValueArr.join() + ')');
           }
         } else {
-          var fValue = encloseField(objSub, encloseFieldFlag)
-          tempJson.valueArr.push(fValue);
+          var fValue = obj
+          tempJson.valueArr.push('\'' + fValue + '\'');
         }
       }
     } else {
@@ -341,9 +353,9 @@ function createInsert(arr) {
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
-        var fValue = encloseField(obj.fValue ? obj.fValue : '');
+        var fValue = obj.fValue ? obj.fValue : '';
         tempJson.fieldArr.push(field);
-        tempJson.valueArr.push(fValue);
+        tempJson.valueArr.push('\'' + fValue + '\'');
       }
     }
 
@@ -359,9 +371,9 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
-      var fValue = encloseField(obj.fValue ? obj.fValue : '');
+      var fValue = obj.fValue ? obj.fValue : '';
       var selectText = '';
-      selectText = table + '.' + field + '=' + fValue;
+      selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       tempArr.push(selectText);
     }
     return tempArr;
