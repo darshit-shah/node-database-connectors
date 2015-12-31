@@ -49,7 +49,6 @@ function createInsertQuery(json) {
   var vInsert = json.insert ? json.insert : null;
   var arrInsert = [];
   arrInsert = createInsert(vInsert);
-  console.log(arrInsert);
   var query = '';
   if (!Array.isArray(vInsert)) {
     if (!Array.isArray(vInsert.fValue[0])) {
@@ -61,7 +60,6 @@ function createInsertQuery(json) {
   } else {
     query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
   }
-
   return query + ';';
 }
 
@@ -93,7 +91,7 @@ function createUpdateQuery(json) {
   return query + ';';
 }
 
-function createSelectQuery(json) {
+function createSelectQuery(json, selectAll) {
   var arrSelect = [],
     arrSortBy = [],
     arrFilter = [],
@@ -113,11 +111,11 @@ function createSelectQuery(json) {
   if (vHaving != null)
     arrHaving = createAggregationFilter(vHaving);
   if (vGroupby != null)
-    arrGroupBy = createSelect(vGroupby);
+    arrGroupBy = createSelect(vGroupby, false);
   if (vFilter != null)
     arrFilter = createFilter(vFilter);
 
-  arrSelect = createSelect(vSelect);
+  arrSelect = createSelect(vSelect, true);
 
   //from/join
   strJOIN = createJOIN(join);
@@ -165,9 +163,16 @@ function createSelectQuery(json) {
 function createDeleteQuery(json) {
   var table = json.table ? json.table : null;
   var arrFilter = [];
-  var vFilter = json.filter;
-  arrFilter = createFilter(vFilter);
-  query = 'DELETE FROM ' + table + ' WHERE' + arrFilter.join('');
+  var vFilter = json.filter ? json.filter : null;;
+  if (vFilter != null) {
+    arrFilter = createFilter(vFilter);
+  }
+  var query = '';
+  if (arrFilter.length > 0) {
+    query = 'DELETE FROM ' + table + ' WHERE' + arrFilter.join('');
+  } else {
+    query = 'DELETE FROM ' + table + ' WHERE 1=1';
+  }
   return query + ';';
 }
 
@@ -233,79 +238,85 @@ function prepareQuery(json) {
 }
 
 //Create select expression
-function createSelect(arr) {
+function createSelect(arr, selectAll) {
   var tempArr = [];
-  if (arr != null && arr.length > 0 ) {
-    for (var s = 0; s < arr.length; s++) {
-      var obj = arr[s];
-      var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
-      var field = encloseField(obj.field, encloseFieldFlag);
-      var table = encloseField((obj.table ? obj.table : ''));
-      var hasAlias = (obj.alias ? true : false);
-      var alias = encloseField((obj.alias ? obj.alias : obj.field));
-      var expression = obj.expression ? obj.expression : null;
-      var aggregation = obj.aggregation ? obj.aggregation : null;
-      var dataType = obj.dataType ? obj.dataType : null;
-      var format = obj.format ? obj.format : null;
-      var selectText = '';
-      if (expression != null) {
-        selectText = '(CASE ';
-        var cases = expression.cases;
-        var defaultCase = expression['default'];
-        var defaultValue = '';
-        for (var e = 0; e < cases.length; e++) {
-          var operator = cases[e].operator;
-          var value = cases[e].value;
-          var out = cases[e].out;
-          var outVal = '';
-          if (out.hasOwnProperty('value')) {
-            outVal = out.value;
-          } else {
-            outVal = encloseField(out.table) + '.' + encloseField(out.field);
+  if (arr != null) {
+    if (arr.length == 0 && selectAll == true) {
+      tempArr.push('*');
+    } else {
+      for (var s = 0; s < arr.length; s++) {
+        var obj = arr[s];
+        var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
+        var field = encloseField(obj.field, encloseFieldFlag);
+        var table = encloseField((obj.table ? obj.table : ''));
+        var hasAlias = (obj.alias ? true : false);
+        var alias = encloseField((obj.alias ? obj.alias : obj.field));
+        var expression = obj.expression ? obj.expression : null;
+        var aggregation = obj.aggregation ? obj.aggregation : null;
+        var dataType = obj.dataType ? obj.dataType : null;
+        var format = obj.format ? obj.format : null;
+        var selectText = '';
+        if (expression != null) {
+          selectText = '(CASE ';
+          var cases = expression.cases;
+          var defaultCase = expression['default'];
+          var defaultValue = '';
+          for (var e = 0; e < cases.length; e++) {
+            var operator = cases[e].operator;
+            var value = cases[e].value;
+            var out = cases[e].out;
+            var outVal = '';
+            if (out.hasOwnProperty('value')) {
+              outVal = out.value;
+            } else {
+              outVal = encloseField(out.table) + '.' + encloseField(out.field);
+            }
+            var strOperatorSign = '';
+            strOperatorSign = operatorSign(operator, value);
+            if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
+              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+            } else {
+              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+            }
           }
-          var strOperatorSign = '';
-          strOperatorSign = operatorSign(operator, value);
-          if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-            selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+          if (defaultCase.hasOwnProperty('value')) {
+            defaultValue = defaultCase.value;
           } else {
-            selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+            defaultValue = encloseField(defaultCase.table) + '.' + encloseField(defaultCase.field);
           }
-        }
-        if (defaultCase.hasOwnProperty('value')) {
-          defaultValue = defaultCase.value;
+          selectText += ' ELSE ' + defaultValue + ' END)';
         } else {
-          defaultValue = encloseField(defaultCase.table) + '.' + encloseField(defaultCase.field);
-        }
-        selectText += ' ELSE ' + defaultValue + ' END)';
-      } else {
-        if (dataType != null) {
-          if (dataType.toString().toLowerCase() == 'datetime') {
-            selectText = ' DATE_FORMAT(' + table + '.' + field + ',\'' + format + '\') ';
+          if (dataType != null) {
+            if (dataType.toString().toLowerCase() == 'datetime') {
+              selectText = ' DATE_FORMAT(' + table + '.' + field + ',\'' + format + '\') ';
+            } else {
+              if (encloseFieldFlag == false || encloseFieldFlag == 'false')
+                selectText = field;
+              else
+                selectText = table + '.' + field;
+            }
           } else {
-            if (encloseFieldFlag == false || encloseFieldFlag == 'false')
+            if (encloseFieldFlag == false || encloseFieldFlag == 'false') {
               selectText = field;
-            else
+            } else {
               selectText = table + '.' + field;
-          }
-        } else {
-          if (encloseFieldFlag == false || encloseFieldFlag == 'false') {
-            selectText = field;
-          } else {
-            selectText = table + '.' + field;
+            }
           }
         }
-      }
 
-      if (aggregation != null) {
-        selectText = aggregation + '(' + selectText + ')';
-      }
-      if (hasAlias) selectText += ' as ' + alias;
-      tempArr.push(selectText);
-      selectText = null;
-    };
-  } else {
-    tempArr.push('*');
+        if (aggregation != null) {
+          selectText = aggregation + '(' + selectText + ')';
+        }
+        if (hasAlias) selectText += ' as ' + alias;
+        tempArr.push(selectText);
+        selectText = null;
+      };
+    }
   }
+
+  // else {
+  //   tempArr.push('*');
+  // }
   return tempArr;
 }
 
@@ -334,6 +345,7 @@ function createInsert(arr) {
           for (var k = 0; k < obj.length; k++) {
             var objSub = obj[k]
             var fValue = objSub
+            fValue = (replaceSingleQuote(fValue));
             subValueArr.push('\'' + fValue + '\'');
 
           }
@@ -343,7 +355,7 @@ function createInsert(arr) {
             tempJson.valueArr.push(', (' + subValueArr.join() + ')');
           }
         } else {
-          var fValue = obj
+          var fValue = (replaceSingleQuote(obj));
           tempJson.valueArr.push('\'' + fValue + '\'');
         }
       }
@@ -354,12 +366,21 @@ function createInsert(arr) {
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
         var fValue = obj.fValue ? obj.fValue : '';
+        fValue = (replaceSingleQuote(fValue));
         tempJson.fieldArr.push(field);
         tempJson.valueArr.push('\'' + fValue + '\'');
       }
     }
-
     return tempJson;
+  }
+}
+
+function replaceSingleQuote(aValue) {
+  if (aValue != undefined && typeof aValue === 'string') {
+    aValue = aValue.replace(/\'/ig, "\\\'");
+    return aValue;
+  } else {
+    return aValue;
   }
 }
 
@@ -372,6 +393,7 @@ function createUpdate(arr) {
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
       var fValue = obj.fValue ? obj.fValue : '';
+      fValue = (replaceSingleQuote(fValue));
       var selectText = '';
       selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       tempArr.push(selectText);
@@ -452,6 +474,8 @@ function operatorSign(operator, value) {
       sign = 'IS';
     } else if (typeof value == 'string') {
       sign = '=';
+    } else {
+      sign = '=';
     }
   } else if (operator.toString().toLowerCase() == 'noteq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
@@ -459,6 +483,8 @@ function operatorSign(operator, value) {
     } else if (typeof value === 'undefined') {
       sign = 'IS NOT';
     } else if (typeof value == 'string') {
+      sign = '<>';
+    } else {
       sign = '<>';
     }
   } else if (operator.toString().toLowerCase() == 'match') {
@@ -473,6 +499,8 @@ function operatorSign(operator, value) {
     sign = '>=';
   } else if (operator.toString().toLowerCase() == 'lteq') {
     sign = '<=';
+  } else {
+    throw Error("Unknow operator '%s'", operator);
   }
   return sign;
 }
