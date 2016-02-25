@@ -528,23 +528,25 @@ function createSingleCondition(obj) {
     }
   }
 
-  var sign = operatorSign(operator, value);
-  if (sign.indexOf('IN') > -1) { //IN condition has different format
-    conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
-  } else {
-    var tempValue = '';
-    if (typeof value === 'undefined') {
-      tempValue = 'null';
-    } else if (typeof value === 'object') {
-      sign = operatorSign(operator, '');
-      if (value.hasOwnProperty('field')) {
-        var rTable = value.table ? value.table : '';
-        tempValue = encloseField(rTable) + '.' + encloseField(value.field);
-      }
+  if (operator != undefined) {
+    var sign = operatorSign(operator, value);
+    if (sign.indexOf('IN') > -1) { //IN condition has different format
+      conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
     } else {
-      tempValue = '\'' + value + '\'';
+      var tempValue = '';
+      if (typeof value === 'undefined') {
+        tempValue = 'null';
+      } else if (typeof value === 'object') {
+        sign = operatorSign(operator, '');
+        if (value.hasOwnProperty('field')) {
+          var rTable = value.table ? value.table : '';
+          tempValue = encloseField(rTable) + '.' + encloseField(value.field);
+        }
+      } else {
+        tempValue = '\'' + value + '\'';
+      }
+      conditiontext += ' ' + sign + ' ' + tempValue;
     }
-    conditiontext += ' ' + sign + ' ' + tempValue;
   }
   return conditiontext;
 }
