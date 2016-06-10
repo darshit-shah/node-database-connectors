@@ -1,11 +1,47 @@
-﻿
+﻿var debug = require('debug')('node-database-connectors:node-database-connectors');
 var db = require('mysql');
 
 //connect
 var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
+
+exports.connectPool = function(json, cb) {
+  connectPool(json, cb);
+}
+
 exports.connect = function(json, cb) {
   connect(json, cb);
+}
+
+function connectPool(json, cb){
+  var numConnections = json.connectionLimit || 10;
+  var pool  = db.createPool({
+    acquireTimeout: json.acquireTimeout || 30 * 1000,
+    connectionLimit : numConnections,
+    host: json.host,
+    port: json.port,
+    user: json.user,
+    database: json.database,
+    password: json.password
+  });
+  cb(null, pool);
+
+  acquireConnection(0);
+  function acquireConnection(index){
+    if(index >= numConnections){
+      return;
+    }
+    debug("acquiring connection ", index, json);
+    pool.getConnection(function(err, connection){
+      if(err){
+        debug("error in acquiring connection", index, err, json);
+      } else {
+        debug("releasing connection ", index, json);
+        connection.release();
+      }
+      acquireConnection(index+1);
+    });
+  }
 }
 
 function connect(json, cb) {
@@ -18,12 +54,12 @@ function connect(json, cb) {
   });
   connection.connect(function(err) {
     if (err) {
-      console.log('error-A');
-      console.log(['c.connect', err]);
+      debug('error-A');
+      debug(['c.connect', err]);
     } else {
       connection.on('error', function(e) {
-        console.log('error-B');
-        console.log(['error', e]);
+        debug('error-B');
+        debug(['error', e]);
       });
     }
     cb(err, connection);

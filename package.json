@@ -15,8 +15,9 @@
     "url": "https://github.com/darshit-shah/node-database-connectors/issues"
   },
   "dependencies": {
+    "mssql": "*",
     "mysql": "*"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "0.0.13"
+  "version": "1.0.0"
 }

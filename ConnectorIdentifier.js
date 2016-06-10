@@ -8,6 +8,9 @@ function identifyConnection(json) {
         if (json.databaseType == "mysql") {
             objConnection = require('./MySQLConnector.js');
         }
+        else if (json.databaseType == "mssql") {
+            objConnection = require('./MSSQLConnector.js');
+        }
         /*else if (json.databaseType == "mssql") {
             objConnection = require('./MSSQLConnector.js');
         }
