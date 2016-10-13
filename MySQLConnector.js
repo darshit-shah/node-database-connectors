@@ -165,7 +165,7 @@ function createSelectQuery(json, selectAll) {
   if (sortby != null) {
     for (var s = 0; s < sortby.length; s++) {
       var encloseFieldFlag = (sortby[s].encloseField != undefined) ? sortby[s].encloseField : true;
-      var sortField = encloseFieldFlag?encloseField(sortby[s].field):sortby[s].field;
+      var sortField = encloseField(sortby[s].field, encloseFieldFlag);
       var sortTable = sortby[s].table != undefined ? encloseField(sortby[s].table) : null;
       var sortOrder = sortby[s].order ? sortby[s].order : 'ASC';
       if (sortTable == null)
@@ -399,8 +399,11 @@ function createInsert(arr) {
             var objSub = obj[k]
             var fValue = objSub
             fValue = (replaceSingleQuote(fValue));
-            subValueArr.push('\'' + fValue + '\'');
-
+            if(fValue !== "NULL"){
+              subValueArr.push('\'' + fValue + '\'');
+            } else{
+              subValueArr.push(fValue);
+            }
           }
           if (tempJson.valueArr !== []) {
             tempJson.valueArr.push('(' + subValueArr.join() + ')');
