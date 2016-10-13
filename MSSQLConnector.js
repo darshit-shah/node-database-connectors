@@ -290,13 +290,29 @@ function createSelect(arr, selectAll) {
                             if(table == fieldIdentifier_left + fieldIdentifier_right)
                                 selectText = field;
                             else
-                                selectText = table + '.' + field;                            
+                                selectText = table + '.' + field;
                         }
                     }
                 }
 
                 if (aggregation != null) {
+                 //CBT:this is for nested aggregation if aggregation key contains Array
+                    if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+                      var aggregationText="";
+                      aggregation.forEach(function(d){
+                       aggregationText=aggregationText+d+"("
+                      });
+                      selectText=aggregationText+selectText;
+                      aggregationText="";
+                      aggregation.forEach(function(d){
+                       aggregationText=aggregationText+")"
+                      });
+                      selectText=selectText+aggregationText;
+
+                   }else{
                     selectText = aggregation + '(' + selectText + ')';
+
+                   }
                 }
                 if (hasAlias) selectText += ' as ' + alias;
                 tempArr.push(selectText);
@@ -385,10 +401,10 @@ function createUpdate(arr) {
             var table = encloseField(obj.table ? obj.table : '');
             var fValue = obj.fValue ? obj.fValue : '';
             fValue = (replaceSingleQuote(fValue));
-            var selectText = '';            
+            var selectText = '';
             if(table == fieldIdentifier_left + fieldIdentifier_right)
                 selectText = field + '=' + '\'' + fValue + '\'';
-            else                
+            else
                 selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
             tempArr.push(selectText);
         }
@@ -509,24 +525,54 @@ function createSingleCondition(obj) {
 
     var conditiontext = '';
     if (aggregation != null) {
-        if (encloseFieldFlag == false) {
-            conditiontext = aggregation + '(' + field + ')';
-        } else {
-            conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
-        }
+       //CBT:this is for nested aggregation if aggregation key contains Array
+       if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+            var aggregationText="";
+            aggregation.forEach(function(d){
+             aggregationText=aggregationText+d+"("
+            });
+            conditiontext=aggregationText+field;
+            aggregationText="";
+            aggregation.forEach(function(d){
+             aggregationText=aggregationText+")"
+            });
+            conditiontext=conditiontext+aggregationText;
+
+         }else{
+          conditiontext = aggregation + '(' + field + ')';
+
+         }
+      } else {
+        if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+             var aggregationText="";
+             aggregation.forEach(function(d){
+              aggregationText=aggregationText+d+"("
+             });
+             conditiontext=aggregationText+encloseField(table) + '.' + encloseField(field);
+             aggregationText="";
+             aggregation.forEach(function(d){
+              aggregationText=aggregationText+")"
+             });
+             conditiontext=conditiontext+aggregationText;
+
+          }else{
+           conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
+
+          }
+      }
     } else {
         if (encloseFieldFlag == false) {
             conditiontext = field;
         } else {
-            
+
             if(table == fieldIdentifier_left + fieldIdentifier_right)
                 selectText = field;
             else
                 selectText = table + '.' + field;
-            
+
             if(encloseField(table) == fieldIdentifier_left + fieldIdentifier_right)
                 conditiontext =  encloseField(field);
-            else                
+            else
                 conditiontext = '' + encloseField(table) + '.' + encloseField(field) + '';
         }
     }
