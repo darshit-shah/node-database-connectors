@@ -200,4 +200,85 @@
   ``` javascript
 
     DELETE FROM tbl_PersonMaster WHERE(``.`pk_id` = '1');
+    ```
+  - _jsonQuery_ : JSON structure of Select with aggregation
+  * _Sample 6 (Select Query)_
+  ```javascript
+    var jsonQuery = {
+      table: "tbl_SampleMaster",
+      alias: "SM",
+      select: [{
+        field: 'pk_tableID',
+        alias: 'pk'
+      }, {
+        field: 'refNumber',
+        aggregation:"count"
+      }],
+      sortby: [{
+        field: 'refNumber'
+      }],
+      filter: {
+        AND: [{
+          field: 'pk_id',
+          operator: 'EQ',
+          value: '1'
+        }]
+      },
+      groupby:[
+       table: "SM",
+       field: 'refNumber',
+      ]
+    };
+  ```
+  _Output :_  
+    ``` javascript
+
+    SELECT ``.`pk_tableID` as `pk`,count(``.`refNumber`)
+    FROM `tbl_SampleMaster` as TM
+    WHERE (``.`pk_id` = '1')
+    GROUP BY `refNumber`
+    ORDER BY `refNumber` ASC;
+
+    ```    
+  - _jsonQuery_ : JSON structure of Select with nested aggregation
+  * _Sample 7 (Select Query)_
+  ```javascript
+    var jsonQuery = {
+      table: "tbl_SampleMaster",
+      alias: "SM",
+      select: [{
+        field: 'pk_tableID',
+        alias: 'pk'
+      }, {
+        field: 'refNumber',
+        aggregation:"count"
+      }, {
+        field: 'applicationCount',
+        aggregation:["count","distinct"]
+      }],
+      sortby: [{
+        field: 'refNumber'
+      }],
+      filter: {
+        AND: [{
+          field: 'pk_id',
+          operator: 'EQ',
+          value: '1'
+        }]
+      },
+      groupby:[
+       table: "SM",
+       field: 'refNumber',
+      ]
+    };
+  ```
+  _Output :_  
+    ``` javascript
+
+    SELECT ``.`pk_tableID` as `pk`,count(``.`refNumber`),count(distinct(``.`applicationCount`))
+    FROM `tbl_SampleMaster` as TM
+    WHERE (``.`pk_id` = '1')
+    GROUP BY `refNumber`
+    ORDER BY `refNumber` ASC;
+
     ```    

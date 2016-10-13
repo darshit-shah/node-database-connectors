@@ -1,4 +1,4 @@
-﻿var debug = require('debug')('node-database-connectors:node-database-connectors');
+var debug = require('debug')('node-database-connectors:node-database-connectors');
 var db = require('mysql');
 
 //connect
@@ -342,7 +342,23 @@ function createSelect(arr, selectAll) {
         }
 
         if (aggregation != null) {
-          selectText = aggregation + '(' + selectText + ')';
+         //CBT:this is for nested aggregation if aggregation key contains Array
+            if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+              var aggregationText="";
+              aggregation.forEach(function(d){
+               aggregationText=aggregationText+d+"("
+              });
+              selectText=aggregationText+selectText;
+              aggregationText="";
+              aggregation.forEach(function(d){
+               aggregationText=aggregationText+")"
+              });
+              selectText=selectText+aggregationText;
+
+           }else{
+            selectText = aggregation + '(' + selectText + ')';
+
+           }
         }
         if (hasAlias) selectText += ' as ' + alias;
         tempArr.push(selectText);
@@ -553,9 +569,40 @@ function createSingleCondition(obj) {
   var conditiontext = '';
   if (aggregation != null) {
     if (encloseFieldFlag == false) {
-      conditiontext = aggregation + '(' + field + ')';
+     //CBT:this is for nested aggregation if aggregation key contains Array
+     if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+          var aggregationText="";
+          aggregation.forEach(function(d){
+           aggregationText=aggregationText+d+"("
+          });
+          conditiontext=aggregationText+field;
+          aggregationText="";
+          aggregation.forEach(function(d){
+           aggregationText=aggregationText+")"
+          });
+          conditiontext=conditiontext+aggregationText;
+
+       }else{
+        conditiontext = aggregation + '(' + field + ')';
+
+       }
     } else {
-      conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
+      if(Object.prototype.toString.call(aggregation).toLowerCase()==="[object array]"){
+           var aggregationText="";
+           aggregation.forEach(function(d){
+            aggregationText=aggregationText+d+"("
+           });
+           conditiontext=aggregationText+encloseField(table) + '.' + encloseField(field);
+           aggregationText="";
+           aggregation.forEach(function(d){
+            aggregationText=aggregationText+")"
+           });
+           conditiontext=conditiontext+aggregationText;
+
+        }else{
+         conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
+
+        }
     }
   } else {
     if (encloseFieldFlag == false) {
