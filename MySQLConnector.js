@@ -22,7 +22,8 @@ function connectPool(json, cb){
     port: json.port,
     user: json.user,
     database: json.database,
-    password: json.password
+    password: json.password,
+    multipleStatements: true
   });
   cb(null, pool);
 
@@ -50,7 +51,8 @@ function connect(json, cb) {
     port: json.port,
     user: json.user,
     database: json.database,
-    password: json.password
+    password: json.password,
+    multipleStatements: true
   });
   connection.connect(function(err) {
     if (err) {
