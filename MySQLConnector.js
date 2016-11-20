@@ -285,6 +285,9 @@ function createSelect(arr, selectAll) {
     } else {
       for (var s = 0; s < arr.length; s++) {
         var obj = arr[s];
+        if(typeof obj === 'string'){
+          obj = {field: obj};
+        }
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag);
         var table = encloseField((obj.table ? obj.table : ''));
