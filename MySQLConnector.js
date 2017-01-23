@@ -6,11 +6,11 @@ var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
 
 exports.connectPool = function(json, cb) {
-  connectPool(json, cb);
+  return connectPool(json, cb);
 }
 
 exports.connect = function(json, cb) {
-  connect(json, cb);
+  return connect(json, cb);
 }
 
 function connectPool(json, cb) {
@@ -25,9 +25,11 @@ function connectPool(json, cb) {
     password: json.password,
     multipleStatements: json.connectionLimit === false ? false : true
   });
-  cb(null, pool);
+  if (cb)
+    cb(null, pool);
 
   acquireConnection(0);
+
   function acquireConnection(index) {
     if (index >= numConnections) {
       return;
@@ -43,6 +45,7 @@ function connectPool(json, cb) {
       acquireConnection(index + 1);
     });
   }
+  return pool;
 }
 
 function connect(json, cb) {
@@ -54,6 +57,7 @@ function connect(json, cb) {
     password: json.password,
     multipleStatements: json.connectionLimit === false ? false : true
   });
+  // console.log("CONNECTION CREATED...", connection.state, connection.threadId);
   connection.connect(function(err) {
     if (err) {
       debug('error-A');
@@ -64,8 +68,10 @@ function connect(json, cb) {
         debug(['error', e]);
       });
     }
-    cb(err, connection);
+    if (cb)
+      cb(err, connection);
   });
+  return connection;
 }
 
 //disconnect
