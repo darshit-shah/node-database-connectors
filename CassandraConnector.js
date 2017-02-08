@@ -1,20 +1,73 @@
-var db = require('mssql');
-
+var debug = require('debug')('node-database-connectors:node-database-connectors');
+var db = require('cassandra-driver');
+var PlainTextAuthProvider = db.auth.PlainTextAuthProvider;
 //connect
-var fieldIdentifier_left = '[',
-  fieldIdentifier_right = ']';
+var fieldIdentifier_left = '`',
+  fieldIdentifier_right = '`';
+
+exports.connectPool = function(json, cb) {
+  connectPool(json, cb);
+}
+
 exports.connect = function(json, cb) {
   connect(json, cb);
 }
 
+function connectPool(json, cb) {
+  //var numConnections = json.connectionLimit || 10;
+  var pool = new db.Client({
+    contactPoints: [json.host],
+    //acquireTimeout: json.acquireTimeout || 30 * 1000,
+    //connectionLimit : numConnections,
+    //host: json.host,
+    //port: json.port,
+    //user: json.user,
+    keyspace: json.keyspace,
+    //password: json.password
+  });
+  cb(null, pool);
+
+  // acquireConnection(0);
+  // function acquireConnection(index){
+  //   if(index >= numConnections){
+  //     return;
+  //   }
+  //   debug("acquiring connection ", index, json);
+  //   pool.getConnection(function(err, connection){
+  //     if(err){
+  //       debug("error in acquiring connection", index, err, json);
+  //     } else {
+  //       debug("releasing connection ", index, json);
+  //       connection.release();
+  //     }
+  //     acquireConnection(index+1);
+  //   });
+  // }
+}
+
 function connect(json, cb) {
-  var config = {
-    user: json.user,
-    password: json.password,
-    server: json.host,
-    database: json.database
-  }
-  cb(config);
+  var connection = new db.Client({
+    contactPoints: [json.host],
+    //acquireTimeout: json.acquireTimeout || 30 * 1000,
+    //connectionLimit : numConnections,
+    //host: json.host,
+    //port: json.port,
+    //user: json.user,
+    keyspace: json.keyspace,
+    //password: json.password
+  });
+  connection.connect(function(err) {
+    if (err) {
+      debug('error-A');
+      debug(['c.connect', err]);
+    } else {
+      connection.on('error', function(e) {
+        debug('error-B');
+        debug(['error', e]);
+      });
+    }
+    cb(err, connection);
+  });
 }
 
 //disconnect
@@ -86,7 +139,7 @@ function createSelectQuery(json, selectAll) {
     arrHaving = [],
     strJOIN = '';
   var table = json.table ? json.table : null;
-  var fromTblAlias = json.alias ? json.alias : json.table;
+  var fromTblAlias = json.alias ? json.alias : null;
   var sortby = json.sortby ? json.sortby : null,
     limit = json.limit ? json.limit : null,
     join = json.join ? json.join : null;
@@ -109,13 +162,14 @@ function createSelectQuery(json, selectAll) {
   if (strJOIN.length > 0) {
     table = strJOIN;
   } else {
-    table = encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
+    table = table + (fromTblAlias ? (' as ' + fromTblAlias) : '');
   }
 
   //order by
   if (sortby != null) {
     for (var s = 0; s < sortby.length; s++) {
-      var sortField = encloseField(sortby[s].field);
+      var encloseFieldFlag = (sortby[s].encloseField != undefined) ? sortby[s].encloseField : true;
+      var sortField = encloseFieldFlag ? encloseField(sortby[s].field) : sortby[s].field;
       var sortTable = sortby[s].table != undefined ? encloseField(sortby[s].table) : null;
       var sortOrder = sortby[s].order ? sortby[s].order : 'ASC';
       if (sortTable == null)
@@ -261,57 +315,38 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
             } else {
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
             defaultValue = defaultCase.value;
           } else {
-            defaultValue = encloseField(defaultCase.table) + '.' + encloseField(defaultCase.field);
+            defaultValue = encloseField(defaultCase.field);
           }
           selectText += ' ELSE ' + defaultValue + ' END)';
         } else {
           if (dataType != null) {
             if (dataType.toString().toLowerCase() == 'datetime') {
-              selectText = ' DATE_FORMAT(' + table + '.' + field + ',\'' + format + '\') ';
+              selectText = ' DATE_FORMAT(' + field + ',\'' + format + '\') ';
             } else {
               if (encloseFieldFlag == false || encloseFieldFlag == 'false')
                 selectText = field;
               else
-                selectText = table + '.' + field;
+                selectText = field;
             }
           } else {
             if (encloseFieldFlag == false || encloseFieldFlag == 'false') {
               selectText = field;
             } else {
-              if (table == fieldIdentifier_left + fieldIdentifier_right)
-                selectText = field;
-              else
-                selectText = table + '.' + field;
+              selectText = field;
             }
           }
         }
 
         if (aggregation != null) {
-          //CBT:this is for nested aggregation if aggregation key contains Array
-          if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
-            var aggregationText = "";
-            aggregation.forEach(function(d) {
-              aggregationText = aggregationText + d + "("
-            });
-            selectText = aggregationText + selectText;
-            aggregationText = "";
-            aggregation.forEach(function(d) {
-              aggregationText = aggregationText + ")"
-            });
-            selectText = selectText + aggregationText;
-
-          } else {
-            selectText = aggregation + '(' + selectText + ')';
-
-          }
+          selectText = aggregation + '(' + selectText + ')';
         }
         if (hasAlias) selectText += ' as ' + alias;
         tempArr.push(selectText);
@@ -401,10 +436,7 @@ function createUpdate(arr) {
       var fValue = obj.fValue ? obj.fValue : '';
       fValue = (replaceSingleQuote(fValue));
       var selectText = '';
-      if (table == fieldIdentifier_left + fieldIdentifier_right)
-        selectText = field + '=' + '\'' + fValue + '\'';
-      else
-        selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+      selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       tempArr.push(selectText);
     }
     return tempArr;
@@ -461,7 +493,7 @@ function createMultipleConditions(obj) {
       tempArrFilters.push(conditiontext);
     }
   }
-  var tempConditionSet = '(' + tempArrFilters.join(' ' + conditionType + ' ') + ')';
+  var tempConditionSet = tempArrFilters.join(' ' + conditionType + ' ');
   tempArrFilters = [];
   tempArrFilters.push(tempConditionSet);
   return tempArrFilters;
@@ -469,7 +501,7 @@ function createMultipleConditions(obj) {
 
 function encloseField(a, flag) {
   if (flag == undefined || (flag != undefined && flag == true))
-    return fieldIdentifier_left + a + fieldIdentifier_right;
+    return a;
   else
     return a;
 }
@@ -525,55 +557,15 @@ function createSingleCondition(obj) {
   var conditiontext = '';
   if (aggregation != null) {
     if (encloseFieldFlag == false) {
-      //CBT:this is for nested aggregation if aggregation key contains Array
-      if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
-        var aggregationText = "";
-        aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
-        });
-        conditiontext = aggregationText + field;
-        aggregationText = "";
-        aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
-        });
-        conditiontext = conditiontext + aggregationText;
-
-      } else {
-        conditiontext = aggregation + '(' + field + ')';
-
-      }
+      conditiontext = aggregation + '(' + field + ')';
     } else {
-      if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
-        var aggregationText = "";
-        aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
-        });
-        conditiontext = aggregationText + encloseField(table) + '.' + encloseField(field);
-        aggregationText = "";
-        aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
-        });
-        conditiontext = conditiontext + aggregationText;
-
-      } else {
-        conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
-
-      }
+      conditiontext = aggregation + '(' + field + ')';
     }
   } else {
     if (encloseFieldFlag == false) {
       conditiontext = field;
     } else {
-
-      if (table == fieldIdentifier_left + fieldIdentifier_right)
-        selectText = field;
-      else
-        selectText = table + '.' + field;
-
-      if (encloseField(table) == fieldIdentifier_left + fieldIdentifier_right)
-        conditiontext = encloseField(field);
-      else
-        conditiontext = '' + encloseField(table) + '.' + encloseField(field) + '';
+      conditiontext = field;
     }
   }
 
@@ -592,8 +584,7 @@ function createSingleCondition(obj) {
       } else if (typeof value === 'object') {
         sign = operatorSign(operator, '');
         if (value.hasOwnProperty('field')) {
-          var rTable = value.table ? value.table : '';
-          tempValue = encloseField(rTable) + '.' + encloseField(value.field);
+          tempValue = value.field;
         }
       } else {
         if (typeof value == 'string') {
@@ -661,3 +652,52 @@ function execQuery(cb) {
     };
   }
 }
+/*
+function objectToCSV(format) {
+var stream = require('stream')
+var liner = new stream.Transform({ objectMode: true })
+var csv = [];
+var isFirstChunk = true;
+liner._transform = function (chunk, encoding, done) {
+if (format == 'csv') {
+var keys = Object.keys(chunk);
+csv = [];
+if (isFirstChunk == true) {
+for (var i = 0; i < keys.length; i++) {
+csv.push(keys[i]);
+}
+}
+else {
+for (var i = 0; i < keys.length; i++) {
+csv.push(chunk[keys[i]]);
+}
+}
+this.push(csv.join());
+}
+else if (format == 'jsonArray') {
+var strChunk = '';
+if (isFirstChunk == true) {
+strChunk += '[' + JSON.stringify(chunk);
+}
+else {
+strChunk += ',' + JSON.stringify(chunk);
+}
+this.push(strChunk);
+}
+else {
+this.push(chunk);
+}
+isFirstChunk = false;
+done()
+}
+
+liner._flush = function (done) {
+if (format == 'jsonArray') {
+this.push(']');
+}
+done()
+}
+
+return liner;
+}
+*/

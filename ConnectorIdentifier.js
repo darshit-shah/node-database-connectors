@@ -16,10 +16,10 @@ function identifyConnection(json) {
         }
         else if (json.databaseType == "elasticsearch") {
             objConnection = require('./ElasticSearchConnector.js');
-        }
-        else if (json.databaseType == "bigquery") {
-            objConnection = require('./bigQueryConnector.js');
         }*/
+        else if (json.databaseType == "cassandra") {
+            objConnection = require('./CassandraConnector.js');
+        }
     }
     else {
 
