@@ -233,6 +233,9 @@ function createSelect(arr, selectAll) {
     } else {
       for (var s = 0; s < arr.length; s++) {
         var obj = arr[s];
+        if (obj.encloseField != undefined && typeof obj.encloseField != "boolean") {
+          obj.encloseField = obj.encloseField == "false" ? false : true;
+        }
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag);
         var table = encloseField((obj.table ? obj.table : ''));
@@ -368,6 +371,9 @@ function createInsert(arr) {
     } else {
       for (var s = 0; s < arr.length; s++) {
         var obj = arr[s];
+        if (obj.encloseField != undefined && typeof obj.encloseField != "boolean") {
+          obj.encloseField = obj.encloseField == "false" ? false : true;
+        }
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
@@ -395,6 +401,9 @@ function createUpdate(arr) {
   if (arr != null) {
     for (var s = 0; s < arr.length; s++) {
       var obj = arr[s];
+      if (obj.encloseField != undefined && typeof obj.encloseField != "boolean") {
+        obj.encloseField = obj.encloseField == "false" ? false : true;
+      }
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
