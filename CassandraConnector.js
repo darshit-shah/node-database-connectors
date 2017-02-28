@@ -562,7 +562,9 @@ function createSingleCondition(obj) {
     operator = obj.operator,
     value = obj.value,
     encloseFieldFlag = obj.encloseField;
-
+  if (encloseFieldFlag != undefined && typeof encloseFieldFlag != "boolean") {
+    encloseFieldFlag = encloseFieldFlag == "false" ? false : true;
+  }
   var conditiontext = '';
   if (aggregation != null) {
     if (encloseFieldFlag == false) {
