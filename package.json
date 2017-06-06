@@ -20,5 +20,5 @@
     "cassandra-driver": "*"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "1.0.6"
+  "version": "1.0.7"
 }
