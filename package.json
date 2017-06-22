@@ -16,8 +16,9 @@
   },
   "dependencies": {
     "mssql": "*",
-    "mysql": "*"
+    "mysql": "*",
+    "cassandra-driver": "*"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "1.0.7"
+  "version": "1.0.9"
 }
