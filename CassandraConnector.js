@@ -76,7 +76,7 @@ exports.disconnect = function() {
 }
 
 function disconnect(connection) {
-  connection.end();
+  //connection.end();
 }
 
 //prepare query
