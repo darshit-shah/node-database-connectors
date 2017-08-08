@@ -9,7 +9,9 @@ var fieldIdentifier_left = '`',
 exports.connect = function(json, cb) {
   connect(json, cb);
 }
-
+exports.connectPool = function(json, cb) {
+  connect(json, cb);
+}
 
 function connect(json, cb) {
 
