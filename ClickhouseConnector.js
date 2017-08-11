@@ -1,5 +1,5 @@
 var debug = require('debug')('node-database-connectors:clickhouse');
-var ClickHouse = require('../@apla/clickhouse');
+var ClickHouse = require('@apla/clickhouse');
 // var PlainTextAuthProvider = db.auth.PlainTextAuthProvider;
 //connect
 var fieldIdentifier_left = '`',
