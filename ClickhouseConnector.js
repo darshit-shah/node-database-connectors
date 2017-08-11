@@ -1,5 +1,5 @@
 var debug = require('debug')('node-database-connectors:clickhouse');
-var ClickHouse = require('./node_modules/@apla/clickhouse');
+var ClickHouse = require('../@apla/clickhouse');
 // var PlainTextAuthProvider = db.auth.PlainTextAuthProvider;
 //connect
 var fieldIdentifier_left = '`',
@@ -16,7 +16,16 @@ exports.connectPool = function(json, cb) {
 function connect(json, cb) {
 
   debug("****************json----", json)
-  var ch = new ClickHouse(json);
+  var ClickHouseJSON = {
+
+    host: json.host,
+    port: json.port,
+    dataObjects: 'FORMAT JSON',
+    queryOptions: json.database ? {
+      database: json.database
+    } : undefined
+  };
+  var ch = new ClickHouse(ClickHouseJSON);
   cb(null, ch);
 }
 
@@ -238,7 +247,7 @@ function createSelect(arr, selectAll) {
       for (var s = 0; s < arr.length; s++) {
         var obj = arr[s];
         if (obj.encloseField != undefined && typeof obj.encloseField != "boolean") {
-          obj.encloseField = obj.encloseField == "false" ? false : true;
+          obj.encloseField = obj.encloseField == 'false' ? false : true;
         }
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag);
@@ -268,9 +277,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + " ('" + value.join("','") + "') THEN " + outVal;
             } else {
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + " '" + value + "' THEN " + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -534,7 +543,7 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+        conditiontext += ' ' + sign + " ('" + value.join("','") + "')";
       } else {
         conditiontext += ' ' + sign + ' (' + value.join(',') + ')';
       }
