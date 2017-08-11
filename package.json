@@ -15,11 +15,11 @@
     "url": "https://github.com/darshit-shah/node-database-connectors/issues"
   },
   "dependencies": {
-    "@apla/clickhouse": "^1.5.0",
+    "@apla/clickhouse": "*",
     "cassandra-driver": "*",
     "mssql": "*",
     "mysql": "*"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "1.0.11"
+  "version": "1.0.12"
 }
