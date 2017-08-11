@@ -3,8 +3,32 @@ var db = require('mssql');
 //connect
 var fieldIdentifier_left = '[',
   fieldIdentifier_right = ']';
+
+exports.connectPool = function(json, cb) {
+  return connectPool(json, cb);
+}
+
 exports.connect = function(json, cb) {
-  connect(json, cb);
+  return connect(json, cb);
+}
+
+function connectPool(json, cb) {
+   var config = {
+    user: json.user,
+    password: json.password,
+    server: json.host,
+    database: json.database
+  }
+  // cb(config);
+  
+  var pool = new db.ConnectionPool(config, err => {
+    if(err){
+      cb(err, null);
+    } else {
+      cb(null, pool);
+    }
+  });
+
 }
 
 function connect(json, cb) {
@@ -14,8 +38,17 @@ function connect(json, cb) {
     server: json.host,
     database: json.database
   }
-  cb(config);
+  // cb(config);
+  db.connect(config, err => {
+    if(err){
+      cb(err, null);
+    } else {
+      cb(null, new db.Request());
+    }
+  });
 }
+
+
 
 //disconnect
 exports.disconnect = function() {
@@ -645,30 +678,30 @@ function createJOIN(join) {
 
 
 //run query
-exports.execQuery = function() {
-  return execQuery(arguments);
+exports.execQuery = function(query, connection, cb) {
+  return execQuery(query, connection, cb);
 }
 
-function execQuery(cb) {
-  var query = arguments[0][0];
-  var connection = null;
-  var format = null;
-  if (arguments[0].length > 1) {
-    format = arguments[0][2];
-  }
-  if (arguments[0].length > 0) {
-    connection = arguments[0][1];
+function execQuery(query, connection, cb) {
+  // var query = arguments[0][0];
+  // var connection = null;
+  // var format = null;
+  // if (arguments[0].length > 1) {
+  //   format = arguments[0][2];
+  // }
+  // if (arguments[0].length > 0) {
+    // connection = arguments[0][1];
     //Commenting pipe and returning full JSON;
     //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
-    connection.query(query, function(err, result, fields) {
-      cb(arguments[0][3]);
+    connection.query(query, function(err, result) {
+      cb(err, result, null);
     });
-  } else {
-    return {
-      status: false,
-      content: {
-        result: 'Connection not specified.'
-      }
-    };
-  }
+  // } else {
+  //   return {
+  //     status: false,
+  //     content: {
+  //       result: 'Connection not specified.'
+  //     }
+  //   };
+  // }
 }
