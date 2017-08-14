@@ -300,9 +300,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += " WHEN " + table + "." + field + " " + strOperatorSign + " ('" + value.join("','") + "') THEN " + outVal;
             } else {
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += "WHEN " + table + "." + field + " " + strOperatorSign + " '" + value + "' THEN " + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -335,15 +335,15 @@ function createSelect(arr, selectAll) {
 
         if (aggregation != null) {
           //CBT:this is for nested aggregation if aggregation key contains Array
-          if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
+          if (Object.prototype.toString.call(aggregation).toLowerCase() === '[object array]') {
             var aggregationText = "";
             aggregation.forEach(function(d) {
-              aggregationText = aggregationText + d + "("
+              aggregationText = aggregationText + d + '('
             });
             selectText = aggregationText + selectText;
             aggregationText = "";
             aggregation.forEach(function(d) {
-              aggregationText = aggregationText + ")"
+              aggregationText = aggregationText + ')'
             });
             selectText = selectText + aggregationText;
 
@@ -576,12 +576,12 @@ function createSingleCondition(obj) {
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
+          aggregationText = aggregationText + d + '('
         });
         conditiontext = aggregationText + field;
         aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
+          aggregationText = aggregationText + ')'
         });
         conditiontext = conditiontext + aggregationText;
 
@@ -593,12 +593,12 @@ function createSingleCondition(obj) {
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
+          aggregationText = aggregationText + d + '('
         });
         conditiontext = aggregationText + encloseField(table) + '.' + encloseField(field);
         aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
+          aggregationText = aggregationText + ')'
         });
         conditiontext = conditiontext + aggregationText;
 
@@ -628,9 +628,9 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+        conditiontext += " " + sign + " ('" + value.join("','") + "')";
       } else {
-        conditiontext += ' ' + sign + ' (' + value.join(',') + ')';
+        conditiontext += " " + sign + " ('" + value.join(",") + ")";
       }
     } else {
       var tempValue = '';
