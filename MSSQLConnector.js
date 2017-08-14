@@ -36,7 +36,10 @@ function connect(json, cb) {
     user: json.user,
     password: json.password,
     server: json.host,
-    database: json.database
+    database: json.database,
+    options: {
+     encrypt : json.encrypt || false
+    }
   }
   // cb(config);
   db.connect(config, err => {
