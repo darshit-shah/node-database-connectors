@@ -13,18 +13,18 @@ exports.connect = function(json, cb) {
 }
 
 function connectPool(json, cb) {
-   var config = {
-    user: json.user,
-    password: json.password,
-    server: json.host,
-    database: json.database
-  }
-  // cb(config);
-    console.log("BEFORE mssql connectionpoll")
-  
+  var config = {
+      user: json.user,
+      password: json.password,
+      server: json.host,
+      database: json.database
+    }
+    // cb(config);
+  console.log("BEFORE mssql connectionpoll")
+
   var pool = new db.ConnectionPool(config, function(err) {
-    console.log("in mssql connectionpoll",err)
-    if(err){
+    console.log("in mssql connectionpoll", err)
+    if (err) {
       cb(err, null);
     } else {
       cb(null, pool.request());
@@ -35,17 +35,17 @@ function connectPool(json, cb) {
 
 function connect(json, cb) {
   var config = {
-    user: json.user,
-    password: json.password,
-    server: json.host,
-    database: json.database,
-    options: {
-     encrypt : json.encrypt || false
+      user: json.user,
+      password: json.password,
+      server: json.host,
+      database: json.database,
+      options: {
+        encrypt: json.encrypt || false
+      }
     }
-  }
-  // cb(config);
+    // cb(config);
   db.connect(config, err => {
-    if(err){
+    if (err) {
       cb(err, null);
     } else {
       cb(null, new db.Request());
@@ -61,7 +61,7 @@ exports.disconnect = function() {
 }
 
 function disconnect(connection) {
-  connection.end();
+  connection.close ? connection.close() : "";
 }
 
 //prepare query
@@ -695,12 +695,12 @@ function execQuery(query, connection, cb) {
   //   format = arguments[0][2];
   // }
   // if (arguments[0].length > 0) {
-    // connection = arguments[0][1];
-    //Commenting pipe and returning full JSON;
-    //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
-    connection.query(query, function(err, result) {
-      cb(err, result, null);
-    });
+  // connection = arguments[0][1];
+  //Commenting pipe and returning full JSON;
+  //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
+  connection.query(query, function(err, result) {
+    cb(err, result, null);
+  });
   // } else {
   //   return {
   //     status: false,
@@ -710,3 +710,4 @@ function execQuery(query, connection, cb) {
   //   };
   // }
 }
+
