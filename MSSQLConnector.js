@@ -3,8 +3,34 @@ var db = require('mssql');
 //connect
 var fieldIdentifier_left = '[',
   fieldIdentifier_right = ']';
+
+exports.connectPool = function(json, cb) {
+  return connectPool(json, cb);
+}
+
 exports.connect = function(json, cb) {
-  connect(json, cb);
+  return connect(json, cb);
+}
+
+function connectPool(json, cb) {
+   var config = {
+    user: json.user,
+    password: json.password,
+    server: json.host,
+    database: json.database
+  }
+  // cb(config);
+    console.log("BEFORE mssql connectionpoll")
+  
+  var pool = new db.ConnectionPool(config, function(err) {
+    console.log("in mssql connectionpoll",err)
+    if(err){
+      cb(err, null);
+    } else {
+      cb(null, pool.request());
+    }
+  });
+
 }
 
 function connect(json, cb) {
@@ -12,10 +38,22 @@ function connect(json, cb) {
     user: json.user,
     password: json.password,
     server: json.host,
-    database: json.database
+    database: json.database,
+    options: {
+     encrypt : json.encrypt || false
+    }
   }
-  cb(config);
+  // cb(config);
+  db.connect(config, err => {
+    if(err){
+      cb(err, null);
+    } else {
+      cb(null, new db.Request());
+    }
+  });
 }
+
+
 
 //disconnect
 exports.disconnect = function() {
@@ -264,9 +302,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += " WHEN " + table + "." + field + " " + strOperatorSign + " ('" + value.join("','") + "') THEN " + outVal;
             } else {
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += "WHEN " + table + "." + field + " " + strOperatorSign + " '" + value + "' THEN " + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -299,15 +337,15 @@ function createSelect(arr, selectAll) {
 
         if (aggregation != null) {
           //CBT:this is for nested aggregation if aggregation key contains Array
-          if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
+          if (Object.prototype.toString.call(aggregation).toLowerCase() === '[object array]') {
             var aggregationText = "";
             aggregation.forEach(function(d) {
-              aggregationText = aggregationText + d + "("
+              aggregationText = aggregationText + d + '('
             });
             selectText = aggregationText + selectText;
             aggregationText = "";
             aggregation.forEach(function(d) {
-              aggregationText = aggregationText + ")"
+              aggregationText = aggregationText + ')'
             });
             selectText = selectText + aggregationText;
 
@@ -540,12 +578,12 @@ function createSingleCondition(obj) {
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
+          aggregationText = aggregationText + d + '('
         });
         conditiontext = aggregationText + field;
         aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
+          aggregationText = aggregationText + ')'
         });
         conditiontext = conditiontext + aggregationText;
 
@@ -557,12 +595,12 @@ function createSingleCondition(obj) {
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + d + "("
+          aggregationText = aggregationText + d + '('
         });
         conditiontext = aggregationText + encloseField(table) + '.' + encloseField(field);
         aggregationText = "";
         aggregation.forEach(function(d) {
-          aggregationText = aggregationText + ")"
+          aggregationText = aggregationText + ')'
         });
         conditiontext = conditiontext + aggregationText;
 
@@ -592,9 +630,9 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+        conditiontext += " " + sign + " ('" + value.join("','") + "')";
       } else {
-        conditiontext += ' ' + sign + ' (' + value.join(',') + ')';
+        conditiontext += " " + sign + " ('" + value.join(",") + ")";
       }
     } else {
       var tempValue = '';
@@ -645,30 +683,30 @@ function createJOIN(join) {
 
 
 //run query
-exports.execQuery = function() {
-  return execQuery(arguments);
+exports.execQuery = function(query, connection, cb) {
+  return execQuery(query, connection, cb);
 }
 
-function execQuery(cb) {
-  var query = arguments[0][0];
-  var connection = null;
-  var format = null;
-  if (arguments[0].length > 1) {
-    format = arguments[0][2];
-  }
-  if (arguments[0].length > 0) {
-    connection = arguments[0][1];
+function execQuery(query, connection, cb) {
+  // var query = arguments[0][0];
+  // var connection = null;
+  // var format = null;
+  // if (arguments[0].length > 1) {
+  //   format = arguments[0][2];
+  // }
+  // if (arguments[0].length > 0) {
+    // connection = arguments[0][1];
     //Commenting pipe and returning full JSON;
     //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
-    connection.query(query, function(err, result, fields) {
-      cb(arguments[0][3]);
+    connection.query(query, function(err, result) {
+      cb(err, result, null);
     });
-  } else {
-    return {
-      status: false,
-      content: {
-        result: 'Connection not specified.'
-      }
-    };
-  }
+  // } else {
+  //   return {
+  //     status: false,
+  //     content: {
+  //       result: 'Connection not specified.'
+  //     }
+  //   };
+  // }
 }
