@@ -25,7 +25,7 @@ function connectPool(json, cb) {
     if(err){
       cb(err, null);
     } else {
-      cb(null, pool);
+      cb(null, pool.request());
     }
   });
 
@@ -59,7 +59,7 @@ exports.disconnect = function() {
 }
 
 function disconnect(connection) {
-  connection.end();
+  connection.close ? connection.close() : "";
 }
 
 //prepare query
