@@ -686,32 +686,32 @@ function createJOIN(join) {
 
 
 //run query
-exports.execQuery = function() {
-  return execQuery(arguments);
+exports.execQuery = function(query, connection, cb) {
+  return execQuery(query, connection, cb);
 }
 
-function execQuery(cb) {
-  var query = arguments[0][0];
-  var connection = null;
-  var format = null;
-  if (arguments[0].length > 1) {
-    format = arguments[0][2];
-  }
-  if (arguments[0].length > 0) {
-    connection = arguments[0][1];
+function execQuery(query, connection, cb) {
+  // var query = arguments[0][0];
+  // var connection = null;
+  // var format = null;
+  // if (arguments[0].length > 1) {
+  //   format = arguments[0][2];
+  // }
+  // if (arguments[0].length > 0) {
+    // connection = arguments[0][1];
     //Commenting pipe and returning full JSON;
     //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
     connection.query(query, function(err, result, fields) {
-      cb(arguments[0][3]);
+      cb(err, result, fields);
     });
-  } else {
-    return {
-      status: false,
-      content: {
-        result: 'Connection not specified.'
-      }
-    };
-  }
+  // } else {
+  //   return {
+  //     status: false,
+  //     content: {
+  //       result: 'Connection not specified.'
+  //     }
+  //   };
+  // }
 }
 /*
 function objectToCSV(format) {
