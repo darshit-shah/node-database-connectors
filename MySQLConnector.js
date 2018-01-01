@@ -413,10 +413,10 @@ function createInsert(arr) {
             var objSub = obj[k]
             var fValue = objSub
             fValue = (replaceSingleQuote(fValue));
-            if (fValue !== "NULL") {
+            if (fValue != null) {
               subValueArr.push('\'' + fValue + '\'');
             } else {
-              subValueArr.push(fValue);
+              subValueArr.push("null");
             }
           }
           if (tempJson.valueArr !== []) {
@@ -471,7 +471,11 @@ function createUpdate(arr) {
       var fValue = obj.fValue ? obj.fValue : '';
       fValue = (replaceSingleQuote(fValue));
       var selectText = '';
-      selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+      if(fValue != null) {
+        selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+      } else {
+        selectText = table + '.' + field + '=' + 'null';
+      }
       tempArr.push(selectText);
     }
     return tempArr;
