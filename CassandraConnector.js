@@ -72,11 +72,14 @@ function connect(json, cb) {
 
 //disconnect
 exports.disconnect = function() {
+
   return disconnect(arguments[0]);
 }
 
 function disconnect(connection) {
-  //connection.end();
+  
+  connection.shutdown()
+
 }
 
 //prepare query
