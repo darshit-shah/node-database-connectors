@@ -14,9 +14,9 @@ exports.connect = function(json, cb) {
 }
 
 function connectPool(json, cb) {
-  var numConnections = json.connectionLimit || 10;
+  var numConnections = json.connectionLimit || 0;
   var pool = db.createPool({
-    acquireTimeout: json.acquireTimeout || 30 * 1000,
+    acquireTimeout: json.acquireTimeout || 2 * 1000,
     connectionLimit: numConnections,
     host: json.host,
     port: json.port,
