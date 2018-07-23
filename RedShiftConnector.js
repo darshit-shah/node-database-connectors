@@ -330,7 +330,7 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' (\'' + value.join("','") + '\') THEN ' + outVal;
             } else {
               selectText += ' WHEN ' + table + '.' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
             }
@@ -649,7 +649,7 @@ function createSingleCondition(obj) {
   if (operator != undefined) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
-      conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+      conditiontext += ' ' + sign + ' (\'' + value.join("','") + '\')';
     } else {
       var tempValue = '';
       if (typeof value === 'undefined') {
