@@ -413,10 +413,14 @@ function createInsert(arr) {
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
-        var fValue = obj.fValue ? obj.fValue : '';
-        fValue = (replaceSingleQuote(fValue));
+        var fValue = obj.fValue;// ? obj.fValue : '';
+        fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
         tempJson.fieldArr.push(field);
-        tempJson.valueArr.push('\'' + fValue + '\'');
+        if(fValue != null) {
+          tempJson.valueArr.push('\'' + fValue + '\'');
+        } else {
+          tempJson.valueArr.push("null");
+        }
       }
     }
     return tempJson;
@@ -443,13 +447,24 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
-      var fValue = obj.fValue ? obj.fValue : '';
-      fValue = (replaceSingleQuote(fValue));
+      var fValue = obj.fValue;// ? obj.fValue : '';
+      fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
       var selectText = '';
-      if (table == fieldIdentifier_left + fieldIdentifier_right)
-        selectText = field + '=' + '\'' + fValue + '\'';
-      else
-        selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+      if(fValue != null) {
+        if (table == fieldIdentifier_left + fieldIdentifier_right)
+          selectText = field + '=' + '\'' + fValue + '\'';
+        else
+          selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+      } else {
+       if(encloseFieldFlag==true){
+          if (table == fieldIdentifier_left + fieldIdentifier_right)
+            selectText = field + '=null';
+          else
+            selectText = table + '.' + field + '=null';
+        }else{
+          selectText = field;
+        }
+      }
       tempArr.push(selectText);
     }
     return tempArr;
