@@ -456,10 +456,14 @@ function createUpdate(arr) {
         else
           selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       } else {
-        if (table == fieldIdentifier_left + fieldIdentifier_right)
-          selectText = field + '=null';
-        else
-          selectText = table + '.' + field + '=null';
+       if(encloseFieldFlag==true){
+          if (table == fieldIdentifier_left + fieldIdentifier_right)
+            selectText = field + '=null';
+          else
+            selectText = table + '.' + field + '=null';
+        }else{
+          selectText = field;
+        }
       }
       tempArr.push(selectText);
     }
