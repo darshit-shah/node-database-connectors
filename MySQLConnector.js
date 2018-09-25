@@ -438,7 +438,6 @@ function createInsert(arr) {
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag)
         var table = encloseField(obj.table ? obj.table : '');
-        var fValue = obj.fValue ? obj.fValue : '';
         var fValue = obj.fValue;// ? obj.fValue : '';
         fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
         tempJson.fieldArr.push(field);
