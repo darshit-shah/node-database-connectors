@@ -483,7 +483,11 @@ function createUpdate(arr) {
       if(fValue != null) {
         selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       } else {
-        selectText = table + '.' + field + '=null';
+        if(encloseFieldFlag==true){
+          selectText = table + '.' + field + '=null';
+        }else{
+          selectText =field;
+        }
       }
       tempArr.push(selectText);
     }
