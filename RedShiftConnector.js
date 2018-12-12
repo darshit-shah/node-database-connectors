@@ -477,7 +477,7 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
-      vvar fValue = obj.fValue;// ? obj.fValue : '';
+      var fValue = obj.fValue;// ? obj.fValue : '';
       fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
       var selectText = '';
       if(fValue != null) {
