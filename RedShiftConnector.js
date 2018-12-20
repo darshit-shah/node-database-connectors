@@ -49,7 +49,6 @@ function connectPool(json, cb) {
 }
 
 function connect(json, cb) {
-  console.log("--------------------------Redshift connector")
   var connection = new Redshift({
     host: json.host,
     port: json.port,
