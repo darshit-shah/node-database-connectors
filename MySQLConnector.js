@@ -652,7 +652,7 @@ function createSingleCondition(obj) {
   if (operator != undefined) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
-      conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+      conditiontext += ' ' + sign + ' (\'' + value.join('\',\'') + '\')';
     } else {
       var tempValue = '';
       if (typeof value === 'undefined') {
