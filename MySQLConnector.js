@@ -558,7 +558,7 @@ function operatorSign(operator, value) {
   if (operator.toString().toLowerCase() == 'eq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS';
     } else if (typeof value == 'string') {
       sign = '=';
@@ -568,7 +568,7 @@ function operatorSign(operator, value) {
   } else if (operator.toString().toLowerCase() == 'noteq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'NOT IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS NOT';
     } else if (typeof value == 'string') {
       sign = '<>';
@@ -656,7 +656,7 @@ function createSingleCondition(obj) {
       conditiontext += " " + sign + " ('" + tempValue + "')";
     } else {
       var tempValue = '';
-      if (typeof value === 'undefined') {
+      if (typeof value === 'undefined' || value == null) {
         tempValue = 'null';
       } else if (typeof value === 'object') {
         sign = operatorSign(operator, '');
