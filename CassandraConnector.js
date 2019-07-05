@@ -321,9 +321,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' (\'' + value.join('\',\'') + '\') THEN ' + outVal;
             } else {
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' \'' + value + '\' THEN ' + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -599,7 +599,7 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+        conditiontext += ' ' + sign + ' (\'' + value.join('\',\'') + '\')';
       } else {
         conditiontext += ' ' + sign + ' (' + value.join(',') + ')';
       }
