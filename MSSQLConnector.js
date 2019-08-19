@@ -659,7 +659,7 @@ function createSingleCondition(obj) {
         }
       } else {
         if (typeof value == 'string') {
-          tempValue = '\'' + value + '\'';
+          tempValue = '\'' + replaceSingleQuote(value) + '\'';
         } else {
           tempValue = value;
         }
