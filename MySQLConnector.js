@@ -665,7 +665,7 @@ function createSingleCondition(obj) {
           tempValue = encloseField(rTable) + '.' + encloseField(value.field);
         }
       } else {
-        tempValue = '\'' + value + '\'';
+        tempValue = '\'' + replaceSingleQuote(value) + '\'';
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
     }
