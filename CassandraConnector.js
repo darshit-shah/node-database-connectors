@@ -321,9 +321,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' ("' + value.join('","') + '") THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' (\'' + value.join('\',\'') + '\') THEN ' + outVal;
             } else {
-              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' "' + value + '" THEN ' + outVal;
+              selectText += ' WHEN ' + field + ' ' + strOperatorSign + ' \'' + value + '\' THEN ' + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -535,7 +535,7 @@ function operatorSign(operator, value) {
   if (operator.toString().toLowerCase() == 'eq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS';
     } else if (typeof value == 'string') {
       sign = '=';
@@ -545,7 +545,7 @@ function operatorSign(operator, value) {
   } else if (operator.toString().toLowerCase() == 'noteq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'NOT IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS NOT';
     } else if (typeof value == 'string') {
       sign = '<>';
@@ -599,13 +599,13 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += ' ' + sign + ' ("' + value.join('","') + '")';
+        conditiontext += ' ' + sign + ' (\'' + value.join('\',\'') + '\')';
       } else {
         conditiontext += ' ' + sign + ' (' + value.join(',') + ')';
       }
     } else {
       var tempValue = '';
-      if (typeof value === 'undefined') {
+      if (typeof value === 'undefined' || value == null) {
         tempValue = 'null';
       } else if (typeof value === 'object') {
         sign = operatorSign(operator, '');

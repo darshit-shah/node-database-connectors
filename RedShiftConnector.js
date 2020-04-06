@@ -49,7 +49,6 @@ function connectPool(json, cb) {
 }
 
 function connect(json, cb) {
-  console.log("--------------------------Redshift connector")
   var connection = new Redshift({
     host: json.host,
     port: json.port,
@@ -477,7 +476,7 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
-      vvar fValue = obj.fValue;// ? obj.fValue : '';
+      var fValue = obj.fValue;// ? obj.fValue : '';
       fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
       var selectText = '';
       if(fValue != null) {
@@ -563,7 +562,7 @@ function operatorSign(operator, value) {
   if (operator.toString().toLowerCase() == 'eq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS';
     } else if (typeof value == 'string') {
       sign = '=';
@@ -573,7 +572,7 @@ function operatorSign(operator, value) {
   } else if (operator.toString().toLowerCase() == 'noteq') {
     if (Object.prototype.toString.call(value) === '[object Array]') {
       sign = 'NOT IN';
-    } else if (typeof value === 'undefined') {
+    } else if (typeof value === 'undefined' || value == null) {
       sign = 'IS NOT';
     } else if (typeof value == 'string') {
       sign = '<>';
@@ -660,7 +659,7 @@ function createSingleCondition(obj) {
       conditiontext += ' ' + sign + ' (\'' + value.join("','") + '\')';
     } else {
       var tempValue = '';
-      if (typeof value === 'undefined') {
+      if (typeof value === 'undefined' || value == null) {
         tempValue = 'null';
       } else if (typeof value === 'object') {
         sign = operatorSign(operator, '');
