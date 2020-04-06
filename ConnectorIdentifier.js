@@ -23,6 +23,8 @@ function identifyConnection(json) {
       objConnection = require('./ClickhouseConnector.js');
     }  else if (json.databaseType == "redshift") {
       objConnection = require('./RedShiftConnector.js');
+    }else if (json.databaseType == "json") {
+      objConnection = require('./JSONConnector.js');
     }
   } else {
 
