@@ -1,5 +1,6 @@
 {
   "name": "node-database-connectors",
+  "version": "1.2.0"
   "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
   "main": "ConnectorIdentifier.js",
@@ -20,6 +21,5 @@
     "mssql": "*",
     "mysql": "*"
   },
-  "homepage": "https://github.com/darshit-shah/node-database-connectors",
-  "version": "1.1.11"
+  "homepage": "https://github.com/darshit-shah/node-database-connectors"
 }
