@@ -1,5 +1,6 @@
 var debug = require('debug')('node-database-connectors:clickhouse');
 var ClickHouse = require('@apla/clickhouse');
+const utils=require("./utils.js");
 // var PlainTextAuthProvider = db.auth.PlainTextAuthProvider;
 //connect
 var fieldIdentifier_left = '`',
@@ -176,33 +177,7 @@ function createDeleteQuery(json) {
 }
 
 function validateJson(json) {
-    if (!json.hasOwnProperty('insert') && !json.hasOwnProperty('update') && !json.hasOwnProperty('delete') && !json.hasOwnProperty('select')) {
-        return 'J2Q_INVALID_JSON';
-    }
-    if (json.hasOwnProperty('filter') && json.hasOwnProperty('insert')) {
-        return 'J2Q_INVALID_INSERTJOSN';
-    }
-
-    if (json.hasOwnProperty('limit') || json.hasOwnProperty('having') || json.hasOwnProperty('groupby')) {
-        if (!json.hasOwnProperty('select')) {
-            return 'J2Q_ONLYSELECT_JSON';
-        }
-    }
-
-    if (json.hasOwnProperty('insert') && (json.hasOwnProperty('update') || json.hasOwnProperty('delete') || json.hasOwnProperty('select'))) {
-        return 'J2Q_INSERT_UPDATE_MERGED';
-    }
-    if (json.hasOwnProperty('udpate') && (json.hasOwnProperty('insert') || json.hasOwnProperty('delete') || json.hasOwnProperty('select'))) {
-        return 'J2Q_INSERT_UPDATE_MERGED';
-    }
-    if (json.hasOwnProperty('delete') && (json.hasOwnProperty('update') || json.hasOwnProperty('insert') || json.hasOwnProperty('select'))) {
-        return 'J2Q_INSERT_UPDATE_MERGED';
-    }
-    if (json.hasOwnProperty('select') && (json.hasOwnProperty('update') || json.hasOwnProperty('delete') || json.hasOwnProperty('insert'))) {
-        return 'J2Q_INSERT_UPDATE_MERGED';
-    } else {
-        return '';
-    }
+    return utils.validateJson(json);
 }
 
 function prepareQuery(json) {

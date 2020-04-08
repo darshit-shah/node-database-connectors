@@ -1,5 +1,5 @@
 var debug = require('debug')('node-database-connectors:node-database-connectors');
-
+const utils=require("./utils.js");
 //connect
 var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
@@ -52,50 +52,21 @@ function createDeleteQuery(json) {
 }
 
 function validateJson(json) {
-  if (!json.hasOwnProperty('select')) {
-    return 'J2Q_INVALID_JSON';
-  }
+  const result=utils.validateJson(json);
   if (!json.hasOwnProperty('join') && !json.hasOwnProperty('table')) {
-    return 'J2Q_INVALID_JSON_JOIN_OR_TABLE_REQUIRED';
+    throw new Error('table or join key missing');
   }
   if (json.hasOwnProperty('join') && json.hasOwnProperty('table')) {
-    return 'J2Q_INVALID_JSON_JOIN_AND_TABLE_NOT_USED_SAME_TIME';
+    throw new Error('Either join or table allowed at a time');
   }
   if (json.hasOwnProperty('insert') || json.hasOwnProperty('update') || json.hasOwnProperty('delete') ) {
-    return 'OPERATION_NOT_SUPPORTED';
+    throw new Error('insert,update and delete operations are not supported now');
   }
-  if (json.hasOwnProperty('filter') && json.hasOwnProperty('insert')) {
-    return 'J2Q_INVALID_INSERTJOSN';
-  }
-
-  if (json.hasOwnProperty('limit') || json.hasOwnProperty('having') || json.hasOwnProperty('groupby')) {
-    if (!json.hasOwnProperty('select')) {
-      return 'J2Q_ONLYSELECT_JSON';
-    }
-  }
-
-  if (json.hasOwnProperty('insert') && (json.hasOwnProperty('update') || json.hasOwnProperty('delete') || json.hasOwnProperty('select'))) {
-    return 'J2Q_INSERT_UPDATE_MERGED';
-  }
-  if (json.hasOwnProperty('udpate') && (json.hasOwnProperty('insert') || json.hasOwnProperty('delete') || json.hasOwnProperty('select'))) {
-    return 'J2Q_INSERT_UPDATE_MERGED';
-  }
-  if (json.hasOwnProperty('delete') && (json.hasOwnProperty('update') || json.hasOwnProperty('insert') || json.hasOwnProperty('select'))) {
-    return 'J2Q_INSERT_UPDATE_MERGED';
-  }
-  if (JSON.stringify(json).toLowerCase().search('enclosefield')!=-1) {
-    return 'ENCLOED_FIELD_NOT_SUPPORTED';
-  }
-  if (json.hasOwnProperty('select') && (json.hasOwnProperty('update') || json.hasOwnProperty('delete') || json.hasOwnProperty('insert'))) {
-    return 'J2Q_INSERT_UPDATE_MERGED';
-  } else {
-    return '';
-  }
+ return result;
 }
 
 function prepareQuery(json) {
   var validate = validateJson(json);
-
   if (validate !== '') {
     return validate;
   } else {
@@ -361,4 +332,3 @@ function execQuery(query, connection, cb) {
   //   };
   // }
 }
-
