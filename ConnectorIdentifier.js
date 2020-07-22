@@ -25,6 +25,8 @@ function identifyConnection(json) {
       objConnection = require('./RedShiftConnector.js');
     }else if (json.databaseType == "json") {
       objConnection = require('./JSONConnector.js');
+    } else if (json.databaseType === "influx") {
+      objConnection = require('./InfluxConnector.js')
     }
   } else {
 
