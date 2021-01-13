@@ -18,13 +18,14 @@ function connectPool(json, cb) {
   //var numConnections = json.connectionLimit || 10;
   var pool = new db.Client({
     contactPoints: [json.host],
-    //acquireTimeout: json.acquireTimeout || 30 * 1000,
-    //connectionLimit : numConnections,
-    //host: json.host,
-    //port: json.port,
-    //user: json.user,
     keyspace: json.keyspace,
-    //password: json.password
+    // If there are credetials in the settings add them.
+    ...((json.username || json.password) && {
+      credentials: {
+        ...(json.username && { username: json.username }),
+        ...(json.password && { password: json.password }),
+      }
+    })
   });
   cb(null, pool);
 
@@ -49,13 +50,14 @@ function connectPool(json, cb) {
 function connect(json, cb) {
   var connection = new db.Client({
     contactPoints: [json.host],
-    //acquireTimeout: json.acquireTimeout || 30 * 1000,
-    //connectionLimit : numConnections,
-    //host: json.host,
-    //port: json.port,
-    //user: json.user,
     keyspace: json.keyspace,
-    //password: json.password
+    // If there are credetials in the settings add them.
+    ...((json.username || json.password) && {
+      credentials: {
+        ...(json.username && { username: json.username }),
+        ...(json.password && { password: json.password }),
+      }
+    })
   });
   connection.connect(function(err) {
     if (err) {
