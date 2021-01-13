@@ -1,5 +1,5 @@
 {
-  "name": "@darshit-shah/node-database-connectors",
+  "name": "node-database-connectors",
   "version": "1.5.0",
   "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
