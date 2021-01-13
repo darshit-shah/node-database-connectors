@@ -27,6 +27,8 @@ function identifyConnection(json) {
       objConnection = require('./JSONConnector.js');
     } else if (json.databaseType === "influx") {
       objConnection = require('./InfluxConnector.js')
+    } else if (json.databaseType === "bigquery"){ 
+      objConnection = require('./BigQueryConnector.js')
     }
   } else {
 
