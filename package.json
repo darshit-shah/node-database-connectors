@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apla/clickhouse": "*",
+    "@google-cloud/bigquery": "^5.5.0",
     "cassandra-driver": "*",
     "mssql": "*",
     "mysql": "*"
