@@ -22,6 +22,10 @@ function connectPool(json, cb) {
     protocolOptions:{
       port:json.port || 9042
     },
+    sslOptions : json.ssl ? {} : null,
+    ...(json.localDataCenter && {
+      localDataCenter:json.localDataCenter,
+    }),
     // If there are credetials in the settings add them.
     ...((json.username || json.password) && {
       credentials: {
