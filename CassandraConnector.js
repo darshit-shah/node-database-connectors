@@ -19,6 +19,9 @@ function connectPool(json, cb) {
   var pool = new db.Client({
     contactPoints: [json.host],
     keyspace: json.keyspace,
+    protocolOptions:{
+      port:json.port || 9042
+    },
     // If there are credetials in the settings add them.
     ...((json.username || json.password) && {
       credentials: {
