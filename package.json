@@ -1,6 +1,6 @@
 {
   "name": "node-database-connectors",
-  "version": "1.2.0",
+  "version": "1.5.0",
   "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
   "main": "ConnectorIdentifier.js",
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@apla/clickhouse": "*",
+    "@google-cloud/bigquery": "^5.5.0",
     "cassandra-driver": "*",
     "mssql": "*",
     "mysql": "*"

@@ -1,6 +1,8 @@
 var debug = require('debug')('node-database-connectors:node-database-connectors');
+const fs  = require('fs');
 var db = require('mysql');
 const utils=require("./utils.js");
+const caData = fs.readFileSync(__dirname + '/BaltimoreCyberTrustRoot.crt.pem');
 //connect
 var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
@@ -15,7 +17,7 @@ exports.connect = function(json, cb) {
 
 function connectPool(json, cb) {
   var numConnections = json.connectionLimit || 0;
-  var pool = db.createPool({
+  let connectionObject = {
     acquireTimeout: json.acquireTimeout || 2 * 1000,
     connectionLimit: numConnections,
     host: json.host,
@@ -24,7 +26,11 @@ function connectPool(json, cb) {
     database: json.database,
     password: json.password,
     multipleStatements: json.connectionLimit === false ? false : true
-  });
+  }
+  if (json.ssl) {
+    connectionObject['ssl'] = { ca: caData }
+  }
+  var pool = db.createPool(connectionObject);
   if (cb)
     cb(null, pool);
 
@@ -49,14 +55,18 @@ function connectPool(json, cb) {
 }
 
 function connect(json, cb) {
-  var connection = db.createConnection({
+  let connectionObject = {
     host: json.host,
     port: json.port,
     user: json.user,
     database: json.database,
     password: json.password,
     multipleStatements: json.connectionLimit === false ? false : true
-  });
+  }
+  if (json.ssl) {
+    connectionObject['ssl'] = { ca: caData }
+  }
+  var connection = db.createConnection(connectionObject);
   // console.log("CONNECTION CREATED...", connection.state, connection.threadId);
   connection.connect(function(err) {
     if (err) {

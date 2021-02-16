@@ -41,6 +41,7 @@ function connect(json, cb) {
      encrypt : json.encrypt || false
     }
   }
+
   // cb(config);
   db.connect(config, err => {
     if(err){
@@ -69,19 +70,20 @@ exports.prepareQuery = function() {
 
 function createInsertQuery(json) {
   var table = json.table ? json.table : null;
+  var schema = json.schema ? encloseField(json.schema) : null;
   var vInsert = json.insert ? json.insert : null;
   var arrInsert = [];
   arrInsert = createInsert(vInsert);
   var query = '';
   if (!Array.isArray(vInsert)) {
     if (!Array.isArray(vInsert.fValue[0])) {
-      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+      query = 'INSERT INTO ' + (schema ? schema + '.' : '') + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
     } else {
-      query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES ' + arrInsert.valueArr.join() + '';
+      query = 'INSERT INTO ' + (schema ? schema + '.' : '') + table + '(' + arrInsert.fieldArr.join() + ') VALUES ' + arrInsert.valueArr.join() + '';
     }
 
   } else {
-    query = 'INSERT INTO ' + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
+    query = 'INSERT INTO ' + (schema ? schema + '.' : '') + table + '(' + arrInsert.fieldArr.join() + ') VALUES(' + arrInsert.valueArr.join() + ')';
   }
   return query + ';';
 }
@@ -91,6 +93,7 @@ function createUpdateQuery(json) {
     arrFilter = [],
     strJOIN = '';
   var table = json.table ? json.table : null;
+  var schema = json.schema ? encloseField(json.schema) : null;
   var vUpdate = json.update ? json.update : null,
     vFilter = json.filter ? json.filter : null,
     join = json.join ? json.join : null;
@@ -102,12 +105,12 @@ function createUpdateQuery(json) {
     if (strJOIN.length > 0) {
       table = strJOIN;
     } else {
-      table = encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
+      table =  encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
     }
   }
 
   arrUpdate = createUpdate(vUpdate);
-  query = 'UPDATE ' + table + ' SET ' + arrUpdate.join() + '';
+  query = 'UPDATE ' + (schema ? schema + '.' : '') + table + ' SET ' + arrUpdate.join() + '';
   if (arrFilter.length > 0) {
     query += ' WHERE ' + arrFilter.join('');
   }
@@ -122,6 +125,7 @@ function createSelectQuery(json, selectAll) {
     arrHaving = [],
     strJOIN = '';
   var table = json.table ? json.table : null;
+  var schema = json.schema ? encloseField(json.schema) : null;
   var fromTblAlias = json.alias ? json.alias : json.table;
   var sortby = json.sortby ? json.sortby : null,
     limit = json.limit ? json.limit : null,
@@ -153,17 +157,18 @@ function createSelectQuery(json, selectAll) {
     for (var s = 0; s < sortby.length; s++) {
       var sortField = encloseField(sortby[s].field);
       var sortTable = sortby[s].table != undefined ? encloseField(sortby[s].table) : null;
+      var sortSchema = sortby[s].schema ? encloseField(sortby[s].schema) : null;
       var sortOrder = sortby[s].order ? sortby[s].order : 'ASC';
       if (sortTable == null)
         arrSortBy.push(sortField + ' ' + sortOrder);
       else
-        arrSortBy.push(sortTable + '.' + sortField + ' ' + sortOrder);
+        arrSortBy.push((sortSchema ? sortSchema + '.' : '') + sortTable + '.' + sortField + ' ' + sortOrder);
     }
   }
 
   var query = 'SELECT ' + arrSelect.join();
   if (table != '') {
-    query += ' FROM ' + table + '';
+    query += ' FROM ' + (schema ? schema + '.' : '') + table + '';
   }
   if (arrFilter.length > 0) {
     query += ' WHERE ' + arrFilter.join('');
@@ -185,6 +190,7 @@ function createSelectQuery(json, selectAll) {
 
 function createDeleteQuery(json) {
   var table = json.table ? json.table : null;
+  var schema = json.schema ? encloseField(json.schema) : null;
   var arrFilter = [];
   var vFilter = json.filter ? json.filter : null;;
   if (vFilter != null) {
@@ -192,9 +198,9 @@ function createDeleteQuery(json) {
   }
   var query = '';
   if (arrFilter.length > 0) {
-    query = 'DELETE FROM ' + table + ' WHERE' + arrFilter.join('');
+    query = 'DELETE FROM ' + (schema ? schema + '.' : '') + table + ' WHERE' + arrFilter.join('');
   } else {
-    query = 'DELETE FROM ' + table + ' WHERE 1=1';
+    query = 'DELETE FROM ' + (schema ? schema + '.' : '') + table + ' WHERE 1=1';
   }
   return query + ';';
 }
@@ -249,6 +255,7 @@ function createSelect(arr, selectAll) {
         var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
         var field = encloseField(obj.field, encloseFieldFlag);
         var table = encloseField((obj.table ? obj.table : ''));
+        var schema = obj.schema ? encloseField(obj.schema) : null;
         var hasAlias = (obj.alias ? true : false);
         var alias = encloseField((obj.alias ? obj.alias : obj.field));
         var expression = obj.expression ? obj.expression : null;
@@ -274,9 +281,9 @@ function createSelect(arr, selectAll) {
             var strOperatorSign = '';
             strOperatorSign = operatorSign(operator, value);
             if (strOperatorSign.indexOf('IN') > -1) { //IN condition has different format
-              selectText += " WHEN " + table + "." + field + " " + strOperatorSign + " ('" + value.join("','") + "') THEN " + outVal;
+              selectText += " WHEN " + (schema ? schema + '.' : '') + table + "." + field + " " + strOperatorSign + " ('" + value.join("','") + "') THEN " + outVal;
             } else {
-              selectText += "WHEN " + table + "." + field + " " + strOperatorSign + " '" + value + "' THEN " + outVal;
+              selectText += "WHEN " + (schema ? schema + '.' : '') + table + "." + field + " " + strOperatorSign + " '" + value + "' THEN " + outVal;
             }
           }
           if (defaultCase.hasOwnProperty('value')) {
@@ -288,12 +295,12 @@ function createSelect(arr, selectAll) {
         } else {
           if (dataType != null) {
             if (dataType.toString().toLowerCase() == 'datetime') {
-              selectText = ' DATE_FORMAT(' + table + '.' + field + ',\'' + format + '\') ';
+              selectText = ' DATE_FORMAT(' + (schema ? schema + '.' : '') + table + '.' + field + ',\'' + format + '\') ';
             } else {
               if (encloseFieldFlag == false || encloseFieldFlag == 'false')
                 selectText = field;
               else
-                selectText = table + '.' + field;
+                selectText = (schema ? schema + '.' : '') + table + '.' + field;
             }
           } else {
             if (encloseFieldFlag == false || encloseFieldFlag == 'false') {
@@ -302,7 +309,7 @@ function createSelect(arr, selectAll) {
               if (table == fieldIdentifier_left + fieldIdentifier_right)
                 selectText = field;
               else
-                selectText = table + '.' + field;
+                selectText = (schema ? schema + '.' : '') + table + '.' + field;
             }
           }
         }
@@ -421,6 +428,7 @@ function createUpdate(arr) {
       var encloseFieldFlag = (obj.encloseField != undefined) ? obj.encloseField : true;
       var field = encloseField(obj.field, encloseFieldFlag)
       var table = encloseField(obj.table ? obj.table : '');
+      var schema = obj.schema ? encloseField(obj.schema) : null;
       var fValue = obj.fValue;// ? obj.fValue : '';
       fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
       var selectText = '';
@@ -428,13 +436,13 @@ function createUpdate(arr) {
         if (table == fieldIdentifier_left + fieldIdentifier_right)
           selectText = field + '=' + '\'' + fValue + '\'';
         else
-          selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
+          selectText = (schema ? schema + '.' : '') + table + '.' + field + '=' + '\'' + fValue + '\'';
       } else {
        if(encloseFieldFlag==true){
           if (table == fieldIdentifier_left + fieldIdentifier_right)
             selectText = field + '=null';
           else
-            selectText = table + '.' + field + '=null';
+            selectText = (schema ? schema + '.' : '') + table + '.' + field + '=null';
         }else{
           selectText = field;
         }
@@ -551,6 +559,7 @@ function operatorSign(operator, value) {
 function createSingleCondition(obj) {
   var field = obj.field,
     table = obj.table ? obj.table : '',
+    schema = obj.schema ? encloseField(obj.schema) : null,
     aggregation = obj.aggregation ? obj.aggregation : null,
     operator = obj.operator,
     value = obj.value,
@@ -584,7 +593,7 @@ function createSingleCondition(obj) {
         aggregation.forEach(function(d) {
           aggregationText = aggregationText + d + '('
         });
-        conditiontext = aggregationText + encloseField(table) + '.' + encloseField(field);
+        conditiontext = aggregationText + (schema ? schema + '.' : '') + encloseField(table) + '.' + encloseField(field);
         aggregationText = "";
         aggregation.forEach(function(d) {
           aggregationText = aggregationText + ')'
@@ -592,7 +601,7 @@ function createSingleCondition(obj) {
         conditiontext = conditiontext + aggregationText;
 
       } else {
-        conditiontext = aggregation + '(' + encloseField(table) + '.' + encloseField(field) + ')';
+        conditiontext = aggregation + '(' + (schema ? schema + '.' : '') + encloseField(table) + '.' + encloseField(field) + ')';
 
       }
     }
@@ -604,12 +613,12 @@ function createSingleCondition(obj) {
       if (table == fieldIdentifier_left + fieldIdentifier_right)
         selectText = field;
       else
-        selectText = table + '.' + field;
+        selectText = (schema ? schema + '.' : '') + table + '.' + field;
 
       if (encloseField(table) == fieldIdentifier_left + fieldIdentifier_right)
         conditiontext = encloseField(field);
       else
-        conditiontext = '' + encloseField(table) + '.' + encloseField(field) + '';
+        conditiontext = (schema ? schema + '.' : '') + encloseField(table) + '.' + encloseField(field) + '';
     }
   }
 
@@ -629,7 +638,8 @@ function createSingleCondition(obj) {
         sign = operatorSign(operator, '');
         if (value.hasOwnProperty('field')) {
           var rTable = value.table ? value.table : '';
-          tempValue = encloseField(rTable) + '.' + encloseField(value.field);
+          var rSchema = value.schema ? encloseField(value.schema) : null;
+          tempValue = (rSchema ? rSchema + '.' : '') + encloseField(rTable) + '.' + encloseField(value.field);
         }
       } else {
         if (typeof value == 'string') {
@@ -649,12 +659,14 @@ function createJOIN(join) {
   var joinText = '';
   if (join != null) {
     var fromTbl = join.table;
+    var fromSchema = join.schema ? encloseField(join.schema) : null;
     var fromTblAlias = join.alias;
     var joinwith = join.joinwith;
     // var strJoinConditions = '';
-    joinText += encloseField(fromTbl) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
+    joinText += (fromSchema ? fromSchema + '.' : '') + encloseField(fromTbl) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
     for (var j = 0; j < joinwith.length; j++) {
       var table = joinwith[j].table,
+        schema = joinwith[j].schema ? encloseField(joinwith[j].schema): null,
         tableAlias = joinwith[j].alias,
         type = joinwith[j].type ? joinwith[j].type : 'INNER',
         joincondition = joinwith[j].joincondition;
@@ -662,7 +674,7 @@ function createJOIN(join) {
       //            for (var jc = 0; jc < joincondition.length; jc++) {
       //                strJoinConditions += joincondition[jc].on + ' ' + operatorSign(joincondition[jc].operator, joincondition[jc].value) + ' ' + joincondition[jc].value + ' ';
       //            }
-      joinText += ' ' + type.toString().toUpperCase() + ' JOIN ' + encloseField(table) + (tableAlias ? (' as ' + tableAlias) : '') + ' ON ' + createFilter(joincondition).join('');
+      joinText += ' ' + type.toString().toUpperCase() + ' JOIN ' + (schema ? schema + '.' : '') + encloseField(table) + (tableAlias ? (' as ' + tableAlias) : '') + ' ON ' + createFilter(joincondition).join('');
     }
   }
   return joinText;
