@@ -17,7 +17,9 @@ function connectPool(json, cb) {
     user: json.user,
     password: json.password,
     server: json.host,
-    database: json.database
+    database: json.database,
+    connectionTimeout: json.acquireTimeout || 10 * 1000,
+    requestTimeout: json.requestTimeout || 30 * 1000,
   }
   // cb(config);
   
@@ -37,6 +39,8 @@ function connect(json, cb) {
     password: json.password,
     server: json.host,
     database: json.database,
+    connectionTimeout: json.acquireTimeout || 10 * 1000,
+    requestTimeout: json.requestTimeout || 30 * 1000,
     options: {
      encrypt : json.encrypt || false
     }
