@@ -29,6 +29,8 @@ function identifyConnection(json) {
       objConnection = require('./InfluxConnector.js')
     } else if (json.databaseType === "bigquery"){ 
       objConnection = require('./BigQueryConnector.js')
+    } else if (json.databaseType === "snowflake"){ 
+      objConnection = require('./SnowflakeConnector.js')
     }
   } else {
 
