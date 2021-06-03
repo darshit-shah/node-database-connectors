@@ -22,7 +22,9 @@ function connectPool(json, cb) {
     database: json.database,
     warehouse: json.warehouse
   }
-
+  if(json.insecureConnect){
+    db.configure({insecureConnect:true})
+  }
   var pool = db.createConnection(connectionObject);
   pool.connect(function (err, conn) {
     if (err) {
@@ -44,7 +46,10 @@ function connect(json, cb) {
     database: json.database,
     warehouse: json.warehouse
   }
-
+  
+  if(json.insecureConnect){
+    db.configure({insecureConnect:true})
+  }
   var connection = db.createConnection(connectionObject);
   connection.connect(function (err, conn) {
     if (err) {
