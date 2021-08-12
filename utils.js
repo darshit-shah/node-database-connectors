@@ -15,8 +15,8 @@ function validateJson(json) {
   if (json.hasOwnProperty("insert") && (json.hasOwnProperty("update") || json.hasOwnProperty("delete") || json.hasOwnProperty("select"))) {
     throw new Error("Cannot use insert with update,delete or select");
   }
-  if (json.hasOwnProperty("udpate") && (json.hasOwnProperty("insert") || json.hasOwnProperty("delete") || json.hasOwnProperty("select"))) {
-    throw new Error("Cannot use udpate with insert,delete or select");
+  if (json.hasOwnProperty("update") && (json.hasOwnProperty("insert") || json.hasOwnProperty("delete") || json.hasOwnProperty("select"))) {
+    throw new Error("Cannot use update with insert,delete or select");
   }
   if (json.hasOwnProperty("delete") && (json.hasOwnProperty("update") || json.hasOwnProperty("insert") || json.hasOwnProperty("select"))) {
     throw new Error("Cannot use delete with update,insert or select");
