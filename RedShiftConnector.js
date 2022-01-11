@@ -654,9 +654,14 @@ function createSingleCondition(obj) {
   }
 
   if (operator != undefined) {
+    if(Array.isArray(value) && value.length ==1)
+     {
+       const updatedValue = value[0];
+       value = updatedValue;
+     }
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
-      conditiontext += ' ' + sign + ' (\'' + value.join("','") + '\')';
+      conditiontext += ' ' + sign + ' (\'' + value.map((e) => e.replace(/'/g, "''")).join("','") + '\')';
     } else {
       var tempValue = '';
       if (typeof value === 'undefined' || value == null) {
@@ -668,7 +673,7 @@ function createSingleCondition(obj) {
           tempValue = encloseField(rTable) + '.' + encloseField(value.field);
         }
       } else {
-        tempValue = '\'' + value + '\'';
+        tempValue = '\'' + value.replace(/'/g, "''") + '\'';
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
     }

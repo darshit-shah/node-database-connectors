@@ -635,7 +635,7 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
-        conditiontext += " " + sign + " ('" + value.join("','") + "')";
+        conditiontext += " " + sign + " ('" + value.map((e) => e.replace(/'/g, "''")).join("','") + "')";        
       } else {
         conditiontext += " " + sign + " ('" + value.join(",") + ")";
       }
