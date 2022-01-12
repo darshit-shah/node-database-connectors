@@ -635,6 +635,11 @@ function createSingleCondition(obj) {
   }
 
   if (operator != undefined) {
+    if(Array.isArray(value) && value.length ==1)
+     {
+       const updatedValue = value[0];
+       value = updatedValue;
+     }
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       if (typeof value[0] == 'string') {
