@@ -674,6 +674,8 @@ function createSingleCondition(obj) {
         }
       } else if (typeof value === 'string') {
         tempValue = '\'' + value.replace(/'/g, "''") + '\'';
+      } else {
+        tempValue = value;
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
     }
