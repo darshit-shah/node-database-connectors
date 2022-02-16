@@ -672,7 +672,7 @@ function createSingleCondition(obj) {
           var rTable = value.table ? value.table : '';
           tempValue = encloseField(rTable) + '.' + encloseField(value.field);
         }
-      } else {
+      } else if (typeof value === 'string') {
         tempValue = '\'' + value.replace(/'/g, "''") + '\'';
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
