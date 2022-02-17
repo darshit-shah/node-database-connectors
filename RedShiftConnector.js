@@ -458,7 +458,7 @@ function createInsert(arr) {
 
 function replaceSingleQuote(aValue) {
   if (aValue != undefined && typeof aValue === 'string') {
-    aValue = aValue.replace(/\'/ig, "\\\'");
+    aValue = aValue.replace(/'/g, "''");
     return aValue;
   } else {
     return aValue;
@@ -661,7 +661,7 @@ function createSingleCondition(obj) {
      }
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
-      conditiontext += ' ' + sign + ' (\'' + value.map((e) => e.replace(/'/g, "''")).join("','") + '\')';
+      conditiontext += ' ' + sign + ' (\'' + value.map((e) => replaceSingleQuote(e)).join("','") + '\')';
     } else {
       var tempValue = '';
       if (typeof value === 'undefined' || value == null) {
@@ -672,10 +672,8 @@ function createSingleCondition(obj) {
           var rTable = value.table ? value.table : '';
           tempValue = encloseField(rTable) + '.' + encloseField(value.field);
         }
-      } else if (typeof value === 'string') {
-        tempValue = '\'' + value.replace(/'/g, "''") + '\'';
       } else {
-        tempValue = value;
+        tempValue = '\'' + replaceSingleQuote(value) + '\'';
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
     }
