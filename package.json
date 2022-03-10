@@ -1,6 +1,6 @@
 {
   "name": "node-database-connectors",
-  "version": "1.6.7",
+  "version": "1.6.8",
   "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
   "main": "ConnectorIdentifier.js",
@@ -21,7 +21,8 @@
     "cassandra-driver": "*",
     "mssql": "*",
     "mysql": "*",
-    "snowflake-sdk": "*"
+    "snowflake-sdk": "*",
+    "pg": "8.7.3"
   },
   "homepage": "https://github.com/darshit-shah/node-database-connectors"
 }

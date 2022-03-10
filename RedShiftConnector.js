@@ -1,5 +1,5 @@
 var debug = require('debug')('node-database-connectors:node-database-connectors');
-var Redshift = require('node-redshift');
+var { Client, Pool } = require('pg');
 
 //connect
 var fieldIdentifier_left = '`',
@@ -15,66 +15,40 @@ exports.connect = function(json, cb) {
 
 function connectPool(json, cb) {
   var numConnections = json.connectionLimit || 0;
-  var pool = new Redshift({
-    // acquireTimeout: json.acquireTimeout || 2 * 1000,
-    // connectionLimit: numConnections,
+  var pool = new Pool({
+    connectionTimeoutMillis: json.acquireTimeout || 10 * 1000,
+    max: numConnections,
     host: json.host,
     port: json.port,
     user: json.user,
     database: json.database,
     password: json.password,
-    // multipleStatements: json.connectionLimit === false ? false : true
+    ssl: json.ssl
   });
-  if (cb)
-    cb(null, pool);
-
-  acquireConnection(0);
-
-  function acquireConnection(index) {
-    if (index >= numConnections) {
-      return;
-    }
-    debug("acquiring connection ", index, json);
-    pool.getConnection(function(err, connection) {
-      if (err) {
-        debug("error in acquiring connection", index, err, json);
-      } else {
-        debug("releasing connection ", index, json);
-        connection.release();
-      }
-      acquireConnection(index + 1);
-    });
-  }
+  if (cb) cb(null, pool);
   return pool;
 }
 
 function connect(json, cb) {
-  var connection = new Redshift({
+  var connection = new Client({
     host: json.host,
     port: json.port,
     user: json.user,
     database: json.database,
     password: json.password,
-    // multipleStatements: json.connectionLimit === false ? false : true
+    ssl: json.ssl
   });
-  // var redshiftConnection =  new Redshift(connection);
-  // console.log("CONNECTION CREATED...", connection.state, connection.threadId);
-  // connection.connect(function(err) {
-  //   console.log(err)
-  //   if (err) {
-  //     debug('error-A');
-  //     debug(['c.connect', err]);
-  //   } else {
-  //     cb(null,connection)
-  //     // connection.on('error', function(e) {
-  //     //   debug('error-B');
-  //     //   debug(['error', e]);
-  //     // });
-  //   }
-  //   if (cb)
-  //     cb(err, connection);
-  // });
-  cb(null,connection)
+
+  connection.connect(function(err) {
+    if (err) {
+      debug('error-A');
+      debug(['c.connect', err]);
+      console.log(err)
+      cb(err, null);
+    } else {
+      cb(null,connection)
+    }
+  });
   return connection;
 }
 
@@ -84,7 +58,7 @@ exports.disconnect = function() {
 }
 
 function disconnect(connection) {
-  connection.close();
+  connection.end();
 }
 
 //prepare query
