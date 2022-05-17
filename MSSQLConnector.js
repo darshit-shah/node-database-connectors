@@ -60,7 +60,7 @@ function connect(json, cb) {
 
 //disconnect
 exports.disconnect = function() {
-  return disconnect(arguments[0]);
+  return disconnect(...arguments);
 }
 
 function disconnect(connection) {
@@ -69,12 +69,12 @@ function disconnect(connection) {
 
 //prepare query
 exports.prepareQuery = function() {
-  return prepareQuery(arguments[0]);
+  return prepareQuery(...arguments);
 }
 
-function createInsertQuery(json) {
+function createInsertQuery(json, dbConfig) {
   var table = json.table ? json.table : null;
-  var schema = json.schema ? encloseField(json.schema) : null;
+  var schema = json.schema ? encloseField(json.schema) : dbConfig.schema ? encloseField(dbConfig.schema): null;
   var vInsert = json.insert ? json.insert : null;
   var arrInsert = [];
   arrInsert = createInsert(vInsert);
@@ -92,12 +92,12 @@ function createInsertQuery(json) {
   return query + ';';
 }
 
-function createUpdateQuery(json) {
+function createUpdateQuery(json, dbConfig) {
   var arrUpdate = [],
     arrFilter = [],
     strJOIN = '';
   var table = json.table ? json.table : null;
-  var schema = json.schema ? encloseField(json.schema) : null;
+  var schema = json.schema ? encloseField(json.schema) : dbConfig.schema ? encloseField(dbConfig.schema): null;
   var vUpdate = json.update ? json.update : null,
     vFilter = json.filter ? json.filter : null,
     join = json.join ? json.join : null;
@@ -121,7 +121,7 @@ function createUpdateQuery(json) {
   return query + ';';
 }
 
-function createSelectQuery(json, selectAll) {
+function createSelectQuery(json, dbConfig) {
   var arrSelect = [],
     arrSortBy = [],
     arrFilter = [],
@@ -129,7 +129,7 @@ function createSelectQuery(json, selectAll) {
     arrHaving = [],
     strJOIN = '';
   var table = json.table ? json.table : null;
-  var schema = json.schema ? encloseField(json.schema) : null;
+  var schema = json.schema ? encloseField(json.schema) : dbConfig.schema ? encloseField(dbConfig.schema): null;
   var fromTblAlias = json.alias ? json.alias : json.table;
   var sortby = json.sortby ? json.sortby : null,
     limit = json.limit ? json.limit : null,
@@ -192,9 +192,9 @@ function createSelectQuery(json, selectAll) {
   return query + ';';
 }
 
-function createDeleteQuery(json) {
+function createDeleteQuery(json, dbConfig) {
   var table = json.table ? json.table : null;
-  var schema = json.schema ? encloseField(json.schema) : null;
+  var schema = json.schema ? encloseField(json.schema) : dbConfig.schema ? encloseField(dbConfig.schema): null;
   var arrFilter = [];
   var vFilter = json.filter ? json.filter : null;;
   if (vFilter != null) {
@@ -213,7 +213,7 @@ function validateJson(json) {
   return utils.validateJson(json);
 }
 
-function prepareQuery(json) {
+function prepareQuery(json, dbConfig) {
   var validate = validateJson(json);
 
   if (validate !== '') {
@@ -227,19 +227,19 @@ function prepareQuery(json) {
 
     //INSERT
     if (vInsert != null) {
-      return createInsertQuery(json);
+      return createInsertQuery(json, dbConfig);
     }
     //UPDATE
     else if (vUpdate != null) {
-      return createUpdateQuery(json);
+      return createUpdateQuery(json, dbConfig);
     }
     //DELETE
     else if (vDelete != null) {
-      return createDeleteQuery(json);
+      return createDeleteQuery(json, dbConfig);
     }
     //SELECT
     else if (vSelect != null) {
-      return createSelectQuery(json);
+      return createSelectQuery(json, dbConfig);
     }
   }
 }
