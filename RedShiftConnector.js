@@ -1,9 +1,10 @@
 var debug = require('debug')('node-database-connectors:node-database-connectors');
 var { Client, Pool } = require('pg');
 
-//connectvar 
-fieldIdentifier_left = '`',
+//connect 
+const fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
+  
 exports.connectPool = function (json, cb) {
   return connectPool(json, cb);
 }
