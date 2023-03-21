@@ -15,15 +15,17 @@ exports.connect = function (json, cb) {
 function connectPool(json, cb) {
   var numConnections = json.connectionLimit || 0;
   var pool = new Pool({
-    connectionTimeoutMillis: json.acquireTimeout || 10 * 1000,
-    max: numConnections,
     host: json.host,
     port: json.port,
     user: json.user,
     database: json.database,
     password: json.password,
     ssl: json.ssl,
-    schema: json.schema
+    schema: json.schema,
+    max: numConnections,
+    connectionTimeoutMillis: json.acquireTimeout || 60 * 1000,
+    keepAlive: json.keepAlive || false,
+    keepAliveInitialDelayMillis: json.keepAliveInitialDelayMillis || 10 * 1000
   });
   if (cb) cb(null, pool);
   return pool;
@@ -36,7 +38,10 @@ function connect(json, cb) {
     user: json.user,
     database: json.database,
     password: json.password,
-    ssl: json.ssl
+    ssl: json.ssl,
+    connectionTimeoutMillis: json.acquireTimeout || 60 * 1000,
+    keepAlive: json.keepAlive || false,
+    keepAliveInitialDelayMillis: json.keepAliveInitialDelayMillis || 10 * 1000
   });
   connection.connect(function (err) {
     if (err) {
