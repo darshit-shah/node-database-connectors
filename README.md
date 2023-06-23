@@ -1,3 +1,6 @@
+[![CodeQL](https://github.com/darshit-shah/node-database-connectors/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/darshit-shah/node-database-connectors/actions/workflows/github-code-scanning/codeql)
+[![Node.js Package](https://github.com/darshit-shah/node-database-connectors/actions/workflows/npm-publish.yml/badge.svg?event=release)](https://github.com/darshit-shah/node-database-connectors/actions/workflows/npm-publish.yml)
+
 ## NODE-DATABASE-CONNECTORS
 #### Author: Axiom
 ##### Created on: 3rd Dec 2015
