@@ -20,20 +20,32 @@ function connectPool(json, cb) {
     username: json.user,
     password: json.password,
     database: json.database,
-    warehouse: json.warehouse
+    warehouse: json.warehouse,
+    authenticator: json.authenticator,
   }
   if(json.insecureConnect){
     db.configure({insecureConnect:true})
   }
   var pool = db.createConnection(connectionObject);
-  pool.connect(function (err, conn) {
-    if (err) {
-      console.error('Unable to connect: ' + err.message); //conn, connection0
-      cb(err, null);
-    } else {
-      cb(null, conn)
-    }
-  });
+  if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
+    pool.connectAsync(function (err, conn) {
+      if (err) {
+        console.error("Unable to connect: " + err.message); //conn, connection0
+        cb(err, null);
+      } else {
+        cb(null, conn);
+      }
+    });
+  } else {
+    pool.connect(function (err, conn) {
+      if (err) {
+        console.error('Unable to connect: ' + err.message); //conn, connection0
+        cb(err, null);
+      } else {
+        cb(null, conn)
+      }
+    });
+  }
 
   return pool;
 }
@@ -44,21 +56,33 @@ function connect(json, cb) {
     username: json.user,
     password: json.password,
     database: json.database,
-    warehouse: json.warehouse
+    warehouse: json.warehouse,
+    authenticator: json.authenticator,
   }
   
   if(json.insecureConnect){
     db.configure({insecureConnect:true})
   }
   var connection = db.createConnection(connectionObject);
-  connection.connect(function (err, conn) {
-    if (err) {
-      console.error('Unable to connect: ' + err.message); //conn, connection0
-      cb(err, null);
-    } else {
-      cb(null, conn)
-    }
-  });
+  if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
+    connection.connectAsync(function (err, conn) {
+      if (err) {
+        console.error("Unable to connect: " + err.message); //conn, connection0
+        cb(err, null);
+      } else {
+        cb(null, conn);
+      }
+    });
+  } else {
+    connection.connect(function (err, conn) {
+      if (err) {
+        console.error('Unable to connect: ' + err.message); //conn, connection0
+        cb(err, null);
+      } else {
+        cb(null, conn)
+      }
+    });
+  }
 
   return connection;
 }
@@ -114,7 +138,7 @@ function createUpdateQuery(json) {
     if (strJOIN.length > 0) {
       table = strJOIN;
     } else {
-      table =  encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
+      table =  encloseField(table, json.encloseField) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
     }
   }
 
@@ -159,13 +183,13 @@ function createSelectQuery(json, selectAll) {
   if (strJOIN.length > 0) {
     table = strJOIN;
   } else {
-    table = encloseField(table) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
+    table = encloseField(table, json.encloseField) + (fromTblAlias ? (' as ' + fromTblAlias) : '');
   }
 
   //order by
   if (sortby != null) {
     for (var s = 0; s < sortby.length; s++) {
-      var sortField = encloseField(sortby[s].field);
+      var sortField = encloseField(sortby[s].field, sortby[s].encloseField)
       var sortTable = sortby[s].table != undefined ? encloseField(sortby[s].table) : null;
       var sortSchema = sortby[s].schema ? encloseField(sortby[s].schema) : null;
       var sortOrder = sortby[s].order ? sortby[s].order : 'ASC';
