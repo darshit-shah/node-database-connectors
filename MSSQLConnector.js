@@ -13,14 +13,25 @@ exports.connect = function(json, cb) {
 }
 
 function connectPool(json, cb) {
-   var config = {
+
+  var config = {
     user: json.user,
     password: json.password,
     server: json.host,
     database: json.database,
     connectionTimeout: json.acquireTimeout || 10 * 1000,
     requestTimeout: json.requestTimeout || 30 * 1000,
-  }
+    options: {
+      encrypt : json.encrypt || false
+    },
+    authentication : json.authenticationType  ? {
+      type: json.authenticationType || false,
+      options: {
+        clientId: json.clientId || false
+      }
+    }:false
+    }
+
   // cb(config);
   
   var pool = new db.ConnectionPool(config, err => {
@@ -34,6 +45,7 @@ function connectPool(json, cb) {
 }
 
 function connect(json, cb) {
+
   var config = {
     user: json.user,
     password: json.password,
@@ -43,7 +55,13 @@ function connect(json, cb) {
     requestTimeout: json.requestTimeout || 30 * 1000,
     options: {
      encrypt : json.encrypt || false
-    }
+    },
+    authentication : json.authenticationType  ? {
+      type: json.authenticationType || false,
+        options: {
+            clientId: json.clientId || false
+        }
+    }:false
   }
 
   // cb(config);
