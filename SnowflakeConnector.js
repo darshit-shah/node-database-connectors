@@ -35,7 +35,11 @@ async function connectPool(json, cb) {
       } else {
         cb(null, conn);
       }
-    });
+    });/*
+    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.account - xxxxx.xxxx-xxxx.azure
+    json.database - XXXX
+    */
   } else if (json.authenticator?.toUpperCase() === "OAUTH") {
     const accessToken = await utils.getAccessToken(json);
     var connectionSF = db.createConnection({
@@ -46,7 +50,7 @@ async function connectPool(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
         cb(null, conn);
@@ -55,7 +59,7 @@ async function connectPool(json, cb) {
   } else {
     pool.connect(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
         cb(null, conn);
@@ -81,12 +85,16 @@ async function connect(json, cb) {
   if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
     connection.connectAsync(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
         cb(null, conn);
       }
-    });
+    });/*
+    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.account - xxxxx.xxxx-xxxx.azure
+    json.database - XXXX
+    */
   } else if (json.authenticator?.toUpperCase() === "OAUTH") {
     const accessToken = await utils.getAccessToken(json);
     var connectionSF = db.createConnection({
@@ -97,8 +105,8 @@ async function connect(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
-        cb(err, null);
+        console.error("Unable to connect: " + err.message); 
+        cb(err, null)
       } else {
         cb(null, conn);
       }
@@ -106,7 +114,7 @@ async function connect(json, cb) {
   } else {
     connection.connect(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
         cb(null, conn);
