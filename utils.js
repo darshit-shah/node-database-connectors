@@ -1,3 +1,4 @@
+var https = require('https');
 function validateJson(json) {
   if (!json.hasOwnProperty("insert") && !json.hasOwnProperty("update") && !json.hasOwnProperty("delete") && !json.hasOwnProperty("select")) {
     throw new Error("JSON should have insert or update or delete or select key");
@@ -27,7 +28,43 @@ function validateJson(json) {
     return "";
   }
 }
-
+function getAccessToken(json) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: json.url,
+      path: "/" + json.path,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+      },
+    };
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => {
+        data += chunk;
+      });
+      res.on("end", () => {
+        const oauthResponse = JSON.parse(data);
+        const accessToken = oauthResponse.access_token;
+        resolve(accessToken);
+      });
+    });
+    req.on("error", (error) => {
+      console.error("Error obtaining access token:", error.message);
+      reject(error);
+    });
+    req.write(
+      new URLSearchParams({
+        client_id: json.clientId,
+        client_secret: json.clientSecret,
+        grant_type: json.grantType,
+        scope: json.scope,
+      }).toString()
+    );
+    req.end();
+  });
+}
 module.exports={
-    validateJson:validateJson 
+    validateJson:validateJson,
+    getAccessToken:getAccessToken
 }

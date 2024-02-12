@@ -14,7 +14,7 @@ exports.connect = function (json, cb) {
   return connect(json, cb);
 }
 
-function connectPool(json, cb) {
+async function connectPool(json, cb) {
   let connectionObject = {
     account: json.account,
     username: json.user,
@@ -22,9 +22,9 @@ function connectPool(json, cb) {
     database: json.database,
     warehouse: json.warehouse,
     authenticator: json.authenticator,
-  }
-  if(json.insecureConnect){
-    db.configure({insecureConnect:true})
+  };
+  if (json.insecureConnect) {
+    db.configure({ insecureConnect: true });
   }
   var pool = db.createConnection(connectionObject);
   if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
@@ -35,22 +35,40 @@ function connectPool(json, cb) {
       } else {
         cb(null, conn);
       }
+    });/*
+    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.account - xxxxx.xxxx-xxxx.azure
+    json.database - XXXX
+    */
+  } else if (json.authenticator?.toUpperCase() === "OAUTH") {
+    const accessToken = await utils.getAccessToken(json);
+    var connectionSF = db.createConnection({
+      account: json.account,
+      authenticator: json.authenticator,
+      database: json.database,
+      token: accessToken,
+    });
+    connectionSF.connect(function (err, conn) {
+      if (err) {
+        console.error("Unable to connect: " + err.message); 
+        cb(err, null);
+      } else {
+        cb(null, conn);
+      }
     });
   } else {
     pool.connect(function (err, conn) {
       if (err) {
-        console.error('Unable to connect: ' + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
-        cb(null, conn)
+        cb(null, conn);
       }
     });
   }
-
-  return pool;
 }
 
-function connect(json, cb) {
+async function connect(json, cb) {
   let connectionObject = {
     account: json.account,
     username: json.user,
@@ -58,17 +76,37 @@ function connect(json, cb) {
     database: json.database,
     warehouse: json.warehouse,
     authenticator: json.authenticator,
-  }
-  
-  if(json.insecureConnect){
-    db.configure({insecureConnect:true})
+  };
+
+  if (json.insecureConnect) {
+    db.configure({ insecureConnect: true });
   }
   var connection = db.createConnection(connectionObject);
   if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
     connection.connectAsync(function (err, conn) {
       if (err) {
-        console.error("Unable to connect: " + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
+      } else {
+        cb(null, conn);
+      }
+    });/*
+    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.account - xxxxx.xxxx-xxxx.azure
+    json.database - XXXX
+    */
+  } else if (json.authenticator?.toUpperCase() === "OAUTH") {
+    const accessToken = await utils.getAccessToken(json);
+    var connectionSF = db.createConnection({
+      account: json.account,
+      authenticator: json.authenticator,
+      database: json.database,
+      token: accessToken,
+    });
+    connectionSF.connect(function (err, conn) {
+      if (err) {
+        console.error("Unable to connect: " + err.message); 
+        cb(err, null)
       } else {
         cb(null, conn);
       }
@@ -76,10 +114,10 @@ function connect(json, cb) {
   } else {
     connection.connect(function (err, conn) {
       if (err) {
-        console.error('Unable to connect: ' + err.message); //conn, connection0
+        console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
-        cb(null, conn)
+        cb(null, conn);
       }
     });
   }
