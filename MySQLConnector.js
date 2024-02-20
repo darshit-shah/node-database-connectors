@@ -1,17 +1,37 @@
 var debug = require('debug')('node-database-connectors:node-database-connectors');
-const fs  = require('fs');
-var db = require('mysql');
-const utils=require("./utils.js");
+const azIdentity = require("@azure/identity");
+const fs = require('fs');
+var db = require('mysql2');
+const utils = require("./utils.js");
 const caData = fs.readFileSync(__dirname + '/BaltimoreCyberTrustRoot.crt.pem');
+const azCAData = fs.readFileSync(__dirname + '/DigiCertGlobalRootCA.crt');
 //connect
 var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
 
-exports.connectPool = function(json, cb) {
+exports.connectPool = async function (json, cb) {
+  // get access Token and update the Password 
+  if (json.extraparam) {
+    try {
+      let accessToken = await __getAccessTokenforMySqlConnection(json);
+      json.password = accessToken.token;
+    } catch (err) {
+      throw Error(err);
+    }
+  }
   return connectPool(json, cb);
 }
 
-exports.connect = function(json, cb) {
+exports.connect = async function (json, cb) {
+  // get access Token and update the Password 
+  if (json.extraparam) {
+    try {
+      let accessToken = await __getAccessTokenforMySqlConnection(json);
+      json.password = accessToken.token;
+    } catch (err) {
+      throw Error(err);
+    }
+  }
   return connect(json, cb);
 }
 
@@ -28,7 +48,13 @@ function connectPool(json, cb) {
     multipleStatements: json.connectionLimit === false ? false : true
   }
   if (json.ssl) {
-    connectionObject['ssl'] = { ca: caData }
+    let extraparamSSL = JSON.parse(json.extraparam);
+    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
+      connectionObject['ssl'] = { ca: azCAData }
+    }
+    else {
+      connectionObject['ssl'] = { ca: caData }
+    }
   }
   var pool = db.createPool(connectionObject);
   if (cb)
@@ -41,7 +67,7 @@ function connectPool(json, cb) {
       return;
     }
     debug("acquiring connection ", index, json);
-    pool.getConnection(function(err, connection) {
+    pool.getConnection(function (err, connection) {
       if (err) {
         debug("error in acquiring connection", index, err, json);
       } else {
@@ -64,16 +90,22 @@ function connect(json, cb) {
     multipleStatements: json.connectionLimit === false ? false : true
   }
   if (json.ssl) {
-    connectionObject['ssl'] = { ca: caData }
+    let extraparamSSL = JSON.parse(json.extraparam);
+    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
+      connectionObject['ssl'] = { ca: azCAData }
+    }
+    else {
+      connectionObject['ssl'] = { ca: caData }
+    }
   }
   var connection = db.createConnection(connectionObject);
   // console.log("CONNECTION CREATED...", connection.state, connection.threadId);
-  connection.connect(function(err) {
+  connection.connect(function (err) {
     if (err) {
       debug('error-A');
       debug(['c.connect', err]);
     } else {
-      connection.on('error', function(e) {
+      connection.on('error', function (e) {
         debug('error-B');
         debug(['error', e]);
       });
@@ -85,7 +117,7 @@ function connect(json, cb) {
 }
 
 //disconnect
-exports.disconnect = function() {
+exports.disconnect = function () {
   return disconnect(arguments[0]);
 }
 
@@ -94,7 +126,7 @@ function disconnect(connection) {
 }
 
 //prepare query
-exports.prepareQuery = function() {
+exports.prepareQuery = function () {
   return prepareQuery(arguments[0]);
 }
 
@@ -343,12 +375,12 @@ function createSelect(arr, selectAll) {
           //CBT:this is for nested aggregation if aggregation key contains Array
           if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
             var aggregationText = "";
-            aggregation.forEach(function(d) {
+            aggregation.forEach(function (d) {
               aggregationText = aggregationText + d + "("
             });
             selectText = aggregationText + selectText;
             aggregationText = "";
-            aggregation.forEach(function(d) {
+            aggregation.forEach(function (d) {
               aggregationText = aggregationText + ")"
             });
             selectText = selectText + aggregationText;
@@ -425,7 +457,7 @@ function createInsert(arr) {
         var fValue = obj.fValue;// ? obj.fValue : '';
         fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
         tempJson.fieldArr.push(field);
-        if(fValue != null) {
+        if (fValue != null) {
           tempJson.valueArr.push('\'' + fValue + '\'');
         } else {
           tempJson.valueArr.push("null");
@@ -459,13 +491,13 @@ function createUpdate(arr) {
       var fValue = obj.fValue;// ? obj.fValue : '';
       fValue = (fValue == null ? fValue : replaceSingleQuote(fValue));
       var selectText = '';
-      if(fValue != null) {
+      if (fValue != null) {
         selectText = table + '.' + field + '=' + '\'' + fValue + '\'';
       } else {
-        if(encloseFieldFlag==true){
+        if (encloseFieldFlag == true) {
           selectText = table + '.' + field + '=null';
-        }else{
-          selectText =field;
+        } else {
+          selectText = field;
         }
       }
       tempArr.push(selectText);
@@ -482,7 +514,7 @@ function createAggregationFilter(obj) {
   return tempHaving;
 }
 
-exports.createFilter = function(arr) {
+exports.createFilter = function (arr) {
   return createFilter(arr);
 }
 
@@ -593,12 +625,12 @@ function createSingleCondition(obj) {
       //CBT:this is for nested aggregation if aggregation key contains Array
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
-        aggregation.forEach(function(d) {
+        aggregation.forEach(function (d) {
           aggregationText = aggregationText + d + "("
         });
         conditiontext = aggregationText + field;
         aggregationText = "";
-        aggregation.forEach(function(d) {
+        aggregation.forEach(function (d) {
           aggregationText = aggregationText + ")"
         });
         conditiontext = conditiontext + aggregationText;
@@ -610,12 +642,12 @@ function createSingleCondition(obj) {
     } else {
       if (Object.prototype.toString.call(aggregation).toLowerCase() === "[object array]") {
         var aggregationText = "";
-        aggregation.forEach(function(d) {
+        aggregation.forEach(function (d) {
           aggregationText = aggregationText + d + "("
         });
         conditiontext = aggregationText + encloseField(table) + '.' + encloseField(field);
         aggregationText = "";
-        aggregation.forEach(function(d) {
+        aggregation.forEach(function (d) {
           aggregationText = aggregationText + ")"
         });
         conditiontext = conditiontext + aggregationText;
@@ -634,11 +666,10 @@ function createSingleCondition(obj) {
   }
 
   if (operator != undefined) {
-    if(Array.isArray(value) && value.length ==1)
-     {
-       const updatedValue = value[0];
-       value = updatedValue;
-     }
+    if (Array.isArray(value) && value.length == 1) {
+      const updatedValue = value[0];
+      value = updatedValue;
+    }
     var sign = operatorSign(operator, value);
     if (sign.indexOf('IN') > -1) { //IN condition has different format
       var tempValue = value.map(d => d != null ? d.toString().replace(/\'/ig, "\\\'") : d).join("','");
@@ -688,7 +719,7 @@ function createJOIN(join) {
 
 
 //run query
-exports.execQuery = function(query, connection, cb) {
+exports.execQuery = function (query, connection, cb) {
   return execQuery(query, connection, cb);
 }
 
@@ -700,12 +731,12 @@ function execQuery(query, connection, cb) {
   //   format = arguments[0][2];
   // }
   // if (arguments[0].length > 0) {
-    // connection = arguments[0][1];
-    //Commenting pipe and returning full JSON;
-    //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
-    connection.query(query, function(err, result, fields) {
-      cb(err, result, fields);
-    });
+  // connection = arguments[0][1];
+  //Commenting pipe and returning full JSON;
+  //return connection.query(query).stream({ highWaterMark: 5 }).pipe(objectToCSV(format));
+  connection.query(query, function (err, result, fields) {
+    cb(err, result, fields);
+  });
   // } else {
   //   return {
   //     status: false,
@@ -764,3 +795,32 @@ done()
 return liner;
 }
 */
+
+
+async function __getAccessTokenforMySqlConnection(json) {
+  let credential;
+  let accessToken;
+  let extraparam = JSON.parse(json.extraparam);
+
+  if (extraparam.authenticationType == 'user-assigned-managed-identity') {
+    if (extraparam.clientId && extraparam.tokenGenerationURL) {
+      credential = new azIdentity.DefaultAzureCredential({
+        managedIdentityClientId: extraparam.clientId
+      });
+      accessToken = credential.getToken(extraparam.tokenGenerationURL)
+    }
+    else {
+      throw Error("clientId or token-generation URL not defined for user-assigned-managed-identity")
+    }
+  }
+  else if (extraparam.authenticationType == 'system-assigned-managed-identity') {
+
+    if (extraparam.tokenGenerationURL) {
+      credential = new azIdentity.DefaultAzureCredential({});
+      accessToken = credential.getToken(extraparam.tokenGenerationURL)
+    }
+  }
+
+  return accessToken;
+
+}
