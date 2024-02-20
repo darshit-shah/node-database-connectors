@@ -49,7 +49,7 @@ function connectPool(json, cb) {
   }
   if (json.ssl) {
     let extraparamSSL = JSON.parse(json.extraparam);
-    if (extraparamSSL.azureSSL) {
+    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
       connectionObject['ssl'] = { ca: azCAData }
     }
     else {
@@ -91,7 +91,7 @@ function connect(json, cb) {
   }
   if (json.ssl) {
     let extraparamSSL = JSON.parse(json.extraparam);
-    if (extraparamSSL.azureSSL) {
+    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
       connectionObject['ssl'] = { ca: azCAData }
     }
     else {
