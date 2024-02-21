@@ -4,7 +4,7 @@ const fs = require('fs');
 var db = require('mysql2');
 const utils = require("./utils.js");
 const caData = fs.readFileSync(__dirname + '/BaltimoreCyberTrustRoot.crt.pem');
-const azCAData = fs.readFileSync(__dirname + '/DigiCertGlobalRootCA.crt');
+const azCAData = fs.readFileSync(__dirname + '/DigiCertGlobalRootCA.crt.pem');
 //connect
 var fieldIdentifier_left = '`',
   fieldIdentifier_right = '`';
