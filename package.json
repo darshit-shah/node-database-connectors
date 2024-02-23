@@ -20,7 +20,7 @@
     "@google-cloud/bigquery": "*",
     "cassandra-driver": "*",
     "mssql": "*",
-    "mysql": "*",
+    "mysql2": "*",
     "snowflake-sdk": "*",
     "pg": "8.7.3"
   },
