@@ -15,6 +15,7 @@ exports.connectPool = async function (json, cb) {
     try {
       let accessToken = await __getAccessTokenforMySqlConnection(json);
       json.password = accessToken.token;
+      json.expiresOnTimestamp = accessToken.expiresOnTimestamp;
     } catch (err) {
       throw Error(err);
     }
@@ -28,6 +29,7 @@ exports.connect = async function (json, cb) {
     try {
       let accessToken = await __getAccessTokenforMySqlConnection(json);
       json.password = accessToken.token;
+      json.expiresOnTimestamp = accessToken.expiresOnTimestamp;
     } catch (err) {
       throw Error(err);
     }
@@ -45,18 +47,22 @@ function connectPool(json, cb) {
     user: json.user,
     database: json.database,
     password: json.password,
-    multipleStatements: json.connectionLimit === false ? false : true
+    multipleStatements: json.connectionLimit === false ? false : true,
+    decimalNumbers : json.decimalNumbers === false ? false : true,
+    expiresOnTimestamp : json.expiresOnTimestamp
   }
   if (json.ssl) {
-    let extraparamSSL = JSON.parse(json.extraparam);
-    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
-      connectionObject['ssl'] = { ca: azCAData }
-    }
-    else {
-      connectionObject['ssl'] = { ca: caData }
-    }
+    connectionObject['ssl'] = { ca: caData }
+    if(json.extraparam){
+      let extraparamSSL = JSON.parse(json.extraparam);
+        if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
+          connectionObject['ssl'] = { ca: azCAData }
+        }
+    }    
   }
   var pool = db.createPool(connectionObject);
+  pool.config.expiresOnTimestamp = json.expiresOnTimestamp;
+  
   if (cb)
     cb(null, pool);
 
@@ -87,16 +93,28 @@ function connect(json, cb) {
     user: json.user,
     database: json.database,
     password: json.password,
-    multipleStatements: json.connectionLimit === false ? false : true
+    multipleStatements: json.connectionLimit === false ? false : true,
+    decimalNumbers : json.decimalNumbers === false ? false : true,
+    expiresOnTimestamp : json.expiresOnTimestamp
   }
+  // if (json.ssl) {
+  //   let extraparamSSL = JSON.parse(json.extraparam);
+  //   if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
+  //     connectionObject['ssl'] = { ca: azCAData }
+  //   }
+  //   else {
+  //     connectionObject['ssl'] = { ca: caData }
+  //   }
+  // }
   if (json.ssl) {
-    let extraparamSSL = JSON.parse(json.extraparam);
-    if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
-      connectionObject['ssl'] = { ca: azCAData }
-    }
-    else {
-      connectionObject['ssl'] = { ca: caData }
-    }
+    connectionObject['ssl'] = { ca: caData }
+    //Overwrite the key file for specific authentication type
+    if(json.extraparam){
+      let extraparamSSL = JSON.parse(json.extraparam);
+        if (extraparamSSL.authenticationType == 'user-assigned-managed-identity') {
+          connectionObject['ssl'] = { ca: azCAData }
+        }
+    }    
   }
   var connection = db.createConnection(connectionObject);
   // console.log("CONNECTION CREATED...", connection.state, connection.threadId);
