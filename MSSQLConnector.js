@@ -22,7 +22,8 @@ function connectPool(json, cb) {
     connectionTimeout: json.acquireTimeout || 10 * 1000,
     requestTimeout: json.requestTimeout || 30 * 1000,
     options: {
-      encrypt : json.encrypt || false
+      encrypt : json.encrypt || false,
+      readOnlyIntent: json.readOnlyIntent ? json.readOnlyIntent : false,
     },
     authentication : json.authenticationType  ? {
       type: json.authenticationType || false,
@@ -45,7 +46,7 @@ function connectPool(json, cb) {
 }
 
 function connect(json, cb) {
-
+    
   var config = {
     user: json.user,
     password: json.password,
@@ -54,7 +55,8 @@ function connect(json, cb) {
     connectionTimeout: json.acquireTimeout || 10 * 1000,
     requestTimeout: json.requestTimeout || 30 * 1000,
     options: {
-     encrypt : json.encrypt || false
+     encrypt : json.encrypt || false,
+     readOnlyIntent: json.readOnlyIntent ? json.readOnlyIntent : false
     },
     authentication : json.authenticationType  ? {
       type: json.authenticationType || false,
