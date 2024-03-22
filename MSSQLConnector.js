@@ -30,7 +30,13 @@ function connectPool(json, cb) {
       options: {
         clientId: json.clientId || false
       }
-    }:false
+    }:false,
+    pool:{
+      min:0,
+      max:json.connectionLimit || 25,
+      idleTimeoutMillis:json.acquireTimeout || 30 * 1000,
+    }
+
     }
 
   // cb(config);
@@ -52,7 +58,7 @@ function connect(json, cb) {
     password: json.password,
     server: json.host,
     database: json.database,
-    connectionTimeout: json.acquireTimeout || 10 * 1000,
+    connectionTimeout: json.acquireTimeout || 30 * 1000,
     requestTimeout: json.requestTimeout || 30 * 1000,
     options: {
      encrypt : json.encrypt || false,
@@ -63,7 +69,12 @@ function connect(json, cb) {
         options: {
             clientId: json.clientId || false
         }
-    }:false
+    }:false,
+    pool:{
+      min:0,
+      max:25,
+      idleTimeoutMillis:json.acquireTimeout || 30 * 1000,
+    }
   }
 
   // cb(config);
