@@ -29,7 +29,7 @@ exports.connect = async function (json, cb) {
     try {
       let accessToken = await __getAccessTokenforMySqlConnection(json);
       json.password = accessToken.token;
-      json.expiresOnTimestamp = accessToken.expiresOnTimestamp;
+      
     } catch (err) {
       throw Error(err);
     }
@@ -94,8 +94,7 @@ function connect(json, cb) {
     database: json.database,
     password: json.password,
     multipleStatements: json.connectionLimit === false ? false : true,
-    decimalNumbers : json.decimalNumbers === false ? false : true,
-    expiresOnTimestamp : json.expiresOnTimestamp
+    decimalNumbers : json.decimalNumbers === false ? false : true
   }
   // if (json.ssl) {
   //   let extraparamSSL = JSON.parse(json.extraparam);
