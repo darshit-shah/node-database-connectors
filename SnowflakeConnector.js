@@ -16,18 +16,18 @@ exports.connect = function (json, cb) {
 
 async function connectPool(json, cb) {
   let connectionObject = {
-    account: json.account,
+    account: json.extraparam.account,
     username: json.user,
     password: json.password,
     database: json.database,
-    warehouse: json.warehouse,
-    authenticator: json.authenticator,
+    warehouse: json.extraparam.warehouse,
+    authenticator: json.extraparam.authenticator,
   };
-  if (json.insecureConnect) {
+  if (json.extraparam.insecureConnect) {
     db.configure({ insecureConnect: true });
   }
   var pool = db.createConnection(connectionObject);
-  if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
+  if (json.extraparam.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
     pool.connectAsync(function (err, conn) {
       if (err) {
         console.error("Unable to connect: " + err.message); //conn, connection0
@@ -36,15 +36,17 @@ async function connectPool(json, cb) {
         cb(null, conn);
       }
     });/*
-    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
-    json.account - xxxxx.xxxx-xxxx.azure
+    json.extraparam.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.extraparam.account - xxxxx.xxxx-xxxx.azure
+    json.extraparam.warehouse - 
+    json.extraparam.insecureConnect - 
     json.database - XXXX
     */
-  } else if (json.authenticator?.toUpperCase() === "OAUTH") {
+  } else if (json.extraparam.authenticator?.toUpperCase() === "OAUTH") {
     const accessToken = await utils.getAccessToken(json);
     var connectionSF = db.createConnection({
-      account: json.account,
-      authenticator: json.authenticator,
+      account: json.extraparam.account,
+      authenticator: json.extraparam.authenticator,
       database: json.database,
       token: accessToken,
     });
@@ -70,19 +72,19 @@ async function connectPool(json, cb) {
 
 async function connect(json, cb) {
   let connectionObject = {
-    account: json.account,
+    account: json.extraparam.account,
     username: json.user,
     password: json.password,
     database: json.database,
-    warehouse: json.warehouse,
-    authenticator: json.authenticator,
+    warehouse: json.extraparam.warehouse,
+    authenticator: json.extraparam.authenticator,
   };
 
-  if (json.insecureConnect) {
+  if (json.extraparam.insecureConnect) {
     db.configure({ insecureConnect: true });
   }
   var connection = db.createConnection(connectionObject);
-  if (json.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
+  if (json.extraparam.authenticator?.toUpperCase() === "EXTERNALBROWSER") {
     connection.connectAsync(function (err, conn) {
       if (err) {
         console.error("Unable to connect: " + err.message); 
@@ -91,15 +93,15 @@ async function connect(json, cb) {
         cb(null, conn);
       }
     });/*
-    json.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
-    json.account - xxxxx.xxxx-xxxx.azure
+    json.extraparam.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
+    json.extraparam.account - xxxxx.xxxx-xxxx.azure
     json.database - XXXX
     */
-  } else if (json.authenticator?.toUpperCase() === "OAUTH") {
+  } else if (json.extraparam.authenticator?.toUpperCase() === "OAUTH") {
     const accessToken = await utils.getAccessToken(json);
     var connectionSF = db.createConnection({
-      account: json.account,
-      authenticator: json.authenticator,
+      account: json.extraparam.account,
+      authenticator: json.extraparam.authenticator,
       database: json.database,
       token: accessToken,
     });
