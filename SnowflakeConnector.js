@@ -56,7 +56,9 @@ async function connectPool(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
-        getClientSecret(json.extraparam);
+        if(err.code=='390303'){
+          getClientSecret(json.extraparam);
+        }
         console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
@@ -113,7 +115,9 @@ async function connect(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
-        getClientSecret(json.extraparam);
+        if(err.code=='390303'){
+          getClientSecret(json.extraparam);
+        }
         console.error("Unable to connect: " + err.message); 
         cb(err, null)
       } else {
