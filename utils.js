@@ -28,11 +28,11 @@ function validateJson(json) {
     return "";
   }
 }
-function getAccessToken(json) {
+function getAccessToken(json,clientSecret) {
   return new Promise((resolve, reject) => {
     const options = {
-      hostname: json.url,
-      path: "/" + json.path,
+      hostname: json.extraparam.url,
+      path: "/" + json.extraparam.path,
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
@@ -55,10 +55,10 @@ function getAccessToken(json) {
     });
     req.write(
       new URLSearchParams({
-        client_id: json.clientId,
-        client_secret: json.clientSecret,
-        grant_type: json.grantType,
-        scope: json.scope,
+        client_id: json.extraparam.clientId,
+        client_secret: clientSecret,
+        grant_type: json.extraparam.grantType,
+        scope: json.extraparam.scope,
       }).toString()
     );
     req.end();
