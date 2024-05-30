@@ -2,9 +2,14 @@ var debug = require('debug')('node-database-connectors:node-database-connectors'
 const fs = require('fs');
 var db = require('snowflake-sdk');
 const utils = require("./utils.js");
+const { DefaultAzureCredential } = require("@azure/identity");
+const { SecretClient } = require("@azure/keyvault-secrets");
 //connect
 var fieldIdentifier_left = '"',
-  fieldIdentifier_right = '"';
+  fieldIdentifier_right = '"',
+  clientCredentials={
+    clientSecret:''
+  }
 
 exports.connectPool = function (json, cb) {
   return connectPool(json, cb);
@@ -38,12 +43,11 @@ async function connectPool(json, cb) {
     });/*
     json.extraparam.authenticator - EXTERNALBROWSER,SNOWFLAKE,OAUTH
     json.extraparam.account - xxxxx.xxxx-xxxx.azure
-    json.extraparam.warehouse - 
-    json.extraparam.insecureConnect - 
     json.database - XXXX
     */
   } else if (json.extraparam.authenticator?.toUpperCase() === "OAUTH") {
-    const accessToken = await utils.getAccessToken(json);
+    var clientSecret=await getClientSecret(json.extraparam);
+    const accessToken = await utils.getAccessToken(json,clientSecret);
     var connectionSF = db.createConnection({
       account: json.extraparam.account,
       authenticator: json.extraparam.authenticator,
@@ -52,6 +56,9 @@ async function connectPool(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
+        if(err.code=='390303'){
+          getClientSecret(json.extraparam);
+        }
         console.error("Unable to connect: " + err.message); 
         cb(err, null);
       } else {
@@ -98,7 +105,8 @@ async function connect(json, cb) {
     json.database - XXXX
     */
   } else if (json.extraparam.authenticator?.toUpperCase() === "OAUTH") {
-    const accessToken = await utils.getAccessToken(json);
+    const clientSecret=await getClientSecret(json.extraparam);
+    const accessToken = await utils.getAccessToken(json,clientSecret);
     var connectionSF = db.createConnection({
       account: json.extraparam.account,
       authenticator: json.extraparam.authenticator,
@@ -107,6 +115,9 @@ async function connect(json, cb) {
     });
     connectionSF.connect(function (err, conn) {
       if (err) {
+        if(err.code=='390303'){
+          getClientSecret(json.extraparam);
+        }
         console.error("Unable to connect: " + err.message); 
         cb(err, null)
       } else {
@@ -126,7 +137,45 @@ async function connect(json, cb) {
 
   return connection;
 }
+async function getClientSecret(extraparam){
+  if(extraparam.keyVault!=undefined){
+  if(extraparam)
+ if(extraparam.clientSecretKey==undefined){
+  if(clientCredentials.clientSecret!=''){
+    return clientCredentials.clientSecret;
+  }else{
+    let clientSecret = await fetchClientSecret(extraparam);
+    clientCredentials.clientSecret=clientSecret;
+    return clientSecret
+  }
+ }else{
+  if(clientCredentials[extraparam.clientSecretKey]!=undefined && clientCredentials[extraparam.clientSecretKey]!=''){
+    return clientCredentials[extraparam.clientSecretKey];
+  }else{
+    let clientSecretOthers = await fetchClientSecret(extraparam);
+    clientCredentials[extraparam.clientSecretKey]=clientSecretOthers;
+    return clientSecretOthers
+  }
+ }
+}else{
+  return extraparam.clientSecret;
+}
+}
+async function fetchClientSecret(extraparam){
+  return new Promise((resolve, reject) => {
+    const credential = new DefaultAzureCredential();
+    const url = `https://${extraparam.keyVault.vaultName}.vault.azure.net`;
+    const client = new SecretClient(url, credential);
+    client
+    .getSecret(extraparam.keyVault.secretName)
+    .then((latestSecret) => {
+      resolve(latestSecret.value);
 
+    }).catch((err) => {
+      reject('Fetching Secret key Failed',err);
+    });
+  });
+}
 //disconnect
 exports.disconnect = function () {
   return disconnect(arguments[0]);
