@@ -659,7 +659,11 @@ function createSingleCondition(obj) {
           tempValue = (rSchema ? rSchema + '.' : '') + encloseField(rTable) + '.' + encloseField(value.field);
         }
       } else {
-        tempValue = '\'' + replaceSingleQuote(value) + '\'';
+          if(typeof value === 'number') {
+            tempValue = value
+          } else {
+            tempValue = '\'' + replaceSingleQuote(value) + '\'';
+          }
       }
       conditiontext += ' ' + sign + ' ' + tempValue;
     }
