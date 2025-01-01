@@ -20,7 +20,7 @@ function connectPool(json, cb) {
     user: json.user,
     database: json.database,
     password: json.password,
-    ssl: json.ssl,
+    ssl: { rejectUnauthorized: false },
     idleTimeoutMillis: 30000
   };
 
@@ -56,17 +56,17 @@ function connect(json, cb) {
     user: json.user,
     database: json.database,
     password: json.password,
-    ssl: json.ssl || false
+    ssl: { rejectUnauthorized: false }
   };
 
   const client = new Client(connectionConfig);
-  console.log("CONNECTION CREATED...", client._connected);
+  // console.log("CONNECTION CREATED...", client._connected);
   client.connect((err) => {
     if (err) {
       console.error('Connection error:', err.stack);
       if(cb) cb('Could not connect')
     }
-    console.log('Connected to the PostgreSQL database successfully');
+    // console.log('Connected to the PostgreSQL database successfully');
     if(cb) cb(err,client)
   })
 }
