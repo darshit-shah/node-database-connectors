@@ -110,7 +110,7 @@ function createInsertQuery(json) {
     query = `INSERT INTO ${table} (${arrInsert.fieldArr.join(', ')}) VALUES (${arrInsert.valueArr.join(', ')})`;
   }
 
-  return query + ';';
+  return query + ' RETURNING * ;';
 }
 
 
@@ -139,7 +139,7 @@ function createUpdateQuery(json) {
   if (arrFilter.length > 0) {
     query += ' WHERE ' + arrFilter.join('');
   }
-  return query + ';';
+  return query + ' RETURNING * ;';
 }
 
 function createSelectQuery(json, selectAll) {
@@ -225,7 +225,7 @@ function createDeleteQuery(json) {
   } else {
     query = 'DELETE FROM ' + table + ' WHERE 1=1';
   }
-  return query + ';';
+  return query + ' RETURNING * ;';
 }
 
 function validateJson(json) {
