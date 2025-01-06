@@ -285,6 +285,7 @@ function createSelect(arr, selectAll) {
         var alias = encloseField((obj.alias ? obj.alias : obj.field));
         var expression = obj.expression ? obj.expression : null;
         var aggregation = obj.aggregation ? obj.aggregation : null;
+        var aggr_delimeter=obj.delimeter?obj.delimeter:null;
         var dataType = obj.dataType ? obj.dataType : null;
         var format = obj.format ? obj.format : null;
         var selectText = '';
@@ -345,13 +346,13 @@ function createSelect(arr, selectAll) {
             });
             selectText = aggregationText + selectText;
             aggregationText = "";
-            aggregation.forEach(function (d) {
-              aggregationText = aggregationText + ")"
+            aggregation.reverse().forEach(function (d) {
+              aggregationText = aggregationText + (d.toLowerCase()=="string_agg"?`,'${aggr_delimeter || ','}'`:"") +")"
             });
             selectText = selectText + aggregationText;
 
           } else {
-            selectText = aggregation + '(' + selectText + ')';
+            selectText = aggregation + '(' + selectText +(aggregation.toLowerCase()=="string_agg"?`,'${aggr_delimeter || ','}'`:"") + ')';
 
           }
         }
