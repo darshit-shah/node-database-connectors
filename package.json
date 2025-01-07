@@ -1,6 +1,6 @@
 {
   "name": "node-database-connectors",
-  "version": "1.7.15",
+  "version": "1.7.16",
   "license": "Apache License 2.0",
   "description": "connector to convert JSON to database specific query",
   "main": "ConnectorIdentifier.js",
