@@ -121,7 +121,7 @@ exports.disconnect = function () {
 };
 
 function disconnect(connection) {
-  connection.end();
+  connection.end ? connection.end() : "";
 }
 
 function __validateConnJSON(json) {
