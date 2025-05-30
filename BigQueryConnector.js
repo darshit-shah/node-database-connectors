@@ -530,7 +530,8 @@ function createInsert(arr) {
           }
         } else {
           var fValue = replaceSingleQuote(obj);
-          tempJson.valueArr.push("'" + fValue + "'");
+          if (typeof fValue === "number") tempJson.valueArr.push(fValue);
+          else tempJson.valueArr.push("'" + fValue + "'");
         }
       }
     } else {
@@ -550,7 +551,8 @@ function createInsert(arr) {
         fValue = fValue == null ? fValue : replaceSingleQuote(fValue);
         tempJson.fieldArr.push(field);
         if (fValue != null) {
-          tempJson.valueArr.push("'" + fValue + "'");
+          if (typeof fValue === "number") tempJson.valueArr.push(fValue);
+          else tempJson.valueArr.push("'" + fValue + "'");
         } else {
           tempJson.valueArr.push("null");
         }
