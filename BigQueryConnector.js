@@ -591,9 +591,12 @@ function createUpdate(arr) {
       var selectText = "";
       if (fValue != null) {
         if (table != null) {
-          selectText = table + "." + field + "=" + "'" + fValue + "'";
+          if (typeof fValue === "number")
+            selectText = table + "." + field + "=" + fValue;
+          else selectText = table + "." + field + "=" + "'" + fValue + "'";
         } else {
-          selectText = field + "=" + "'" + fValue + "'";
+          if (typeof fValue === "number") selectText = field + "=" + fValue;
+          else selectText = field + "=" + "'" + fValue + "'";
         }
       } else {
         if (encloseFieldFlag == true) {
@@ -806,10 +809,14 @@ function createSingleCondition(obj) {
     var sign = operatorSign(operator, value);
     if (sign.indexOf("IN") > -1) {
       //IN condition has different format
-      var tempValue = value
-        .map((d) => (d != null ? d.toString().replace(/\'/gi, "\\'") : d))
-        .join("','");
-      conditiontext += " " + sign + " ('" + tempValue + "')";
+      var tempValue = value.map((d) => {
+        if (d === null || typeof d === "number") {
+          return d;
+        } else {
+          return "'" + d.toString().replace(/\'/gi, "\\'") + "'";
+        }
+      }).join(",");
+      conditiontext += " " + sign + " (" + tempValue + ")";
     } else {
       var tempValue = "";
       if (typeof value === "undefined" || value == null) {

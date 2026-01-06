@@ -452,7 +452,7 @@ function createInsert(arr) {
               subValueArr.push("null");
             }
           }
-          if (tempJson.valueArr.length !== 0) {
+          if (tempJson.valueArr !== []) {
             tempJson.valueArr.push('(' + subValueArr.join() + ')');
           } else {
             tempJson.valueArr.push(', (' + subValueArr.join() + ')');
