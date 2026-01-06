@@ -34,6 +34,9 @@ function identifyConnection(json) {
     } else if (json.databaseType === "snowflake"){ 
       objConnection = require('./SnowflakeConnector.js')
     }
+    else if (json.databaseType === "doris"){ 
+      objConnection = require('./DorisConnector.js')
+    }
   } else {
 
   }
